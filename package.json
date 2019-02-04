@@ -1,0 +1,26 @@
+{
+  "name": "nova-jupyterlab-plugin",
+  "version": "0.0.1",
+  "description": "Plugin for submitting Jupyter Notebooks for training on GCP.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gclouduniverse/nova-jupyterlab-plugin.git"
+  },
+  "keywords": [
+    "jupyter",
+    "notebook",
+    "jupyter lab",
+    "gcp",
+    "google cloud platform"
+  ],
+  "author": "Viacheslav Kovalevskyi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gclouduniverse/nova-jupyterlab-plugin/issues"
+  },
+  "homepage": "https://github.com/gclouduniverse/nova-jupyterlab-plugin#readme"
+}
