@@ -1,3 +1,5 @@
+import { URLExt } from '@jupyterlab/coreutils';
+
 import {
   IDisposable, DisposableDelegate
 } from '@phosphor/disposable';
@@ -22,6 +24,7 @@ import {
   PageConfig 
 } from '@jupyterlab/coreutils';
 
+import { ServerConnection } from '@jupyterlab/services';
 
 /**
  * The plugin registration information.
@@ -50,6 +53,14 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 	  console.log(a)
 	  console.log(b) 
 	  console.log(PageConfig.getOption('serverRoot')) 
+	  console.log(ServerConnection.makeSettings());
+          let fullRequest = {
+            method: 'POST',
+            body: JSON.stringify({"path": PageConfig.getOption('serverRoot')})
+          };
+          let setting = ServerConnection.makeSettings();
+          let fullUrl = URLExt.join(setting.baseUrl, "nova");
+          ServerConnection.makeRequest(fullUrl, fullRequest, setting);
     };
     let button = new ToolbarButton({
       className: 'myButton',
