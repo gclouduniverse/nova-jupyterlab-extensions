@@ -1,3 +1,4 @@
+import '../style/index.css';
 import { IDisposable } from '@phosphor/disposable';
 import { JupyterLabPlugin } from '@jupyterlab/application';
 import { DocumentRegistry } from '@jupyterlab/docregistry';

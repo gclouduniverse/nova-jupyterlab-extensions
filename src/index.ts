@@ -1,5 +1,7 @@
 import { URLExt } from '@jupyterlab/coreutils';
 
+import '../style/index.css';
+
 import {
   IDisposable, DisposableDelegate
 } from '@phosphor/disposable';
@@ -74,13 +76,13 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 	  console.log("trololo");
     };
     let button = new ToolbarButton({
-      className: 'myButton',
-      iconClassName: 'fa fa-fast-forward',
+      className: 'backgroundTraining',
+      iconClassName: 'fa fa-envelope',
       onClick: callback,
-      tooltip: 'Ololo'
+      tooltip: 'Submit for background training.'
     });
 
-    panel.toolbar.insertItem(0, 'runAll', button);
+    panel.toolbar.insertItem(0, 'trainOnBackground', button);
     return new DisposableDelegate(() => {
       button.dispose();
     });
