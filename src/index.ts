@@ -54,13 +54,24 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 	  console.log(b) 
 	  console.log(PageConfig.getOption('serverRoot')) 
 	  console.log(ServerConnection.makeSettings());
+	  let notebook_path_array = notebook_path.split("/")
+	  let notebook = notebook_path_array[notebook_path_array.length - 1]
+	  let path_to_folder = PageConfig.getOption('serverRoot') + "/" + notebook_path
+	  path_to_folder = path_to_folder.substring(0, path_to_folder.length - notebook.length);
           let fullRequest = {
             method: 'POST',
-            body: JSON.stringify({"path": PageConfig.getOption('serverRoot')})
+	    body: JSON.stringify(
+	      {
+	      "home_dir": PageConfig.getOption('serverRoot'),
+	      "dir": path_to_folder,
+	      "notebook": notebook
+	      }
+	    )
           };
           let setting = ServerConnection.makeSettings();
           let fullUrl = URLExt.join(setting.baseUrl, "nova");
           ServerConnection.makeRequest(fullUrl, fullRequest, setting);
+	  console.log("trololo");
     };
     let button = new ToolbarButton({
       className: 'myButton',
