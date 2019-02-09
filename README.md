@@ -1,4 +1,4 @@
-# nova
+# Nova
 
 Jupyter Notebook submission to GCP
 
@@ -9,8 +9,12 @@ Jupyter Notebook submission to GCP
 
 ## Installation
 
+This should work on Google Cloud Deep Learning VM M19+.
+
 ```bash
-jupyter labextension install nova
+sudo pip3 install .
+sudo service jupyter restart
+jupyter labextension install
 ```
 
 ## Development
