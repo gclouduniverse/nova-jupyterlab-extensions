@@ -1,6 +1,5 @@
 import { URLExt } from '@jupyterlab/coreutils';
-
-import '../style/index.css';
+import '../style/variables.css'
 
 import {
   IDisposable, DisposableDelegate
@@ -36,6 +35,14 @@ const plugin: JupyterLabPlugin<void> = {
   id: 'my-extension-name:buttonPlugin',
   autoStart: true
 };
+
+import { style } from 'typestyle'
+
+export const iconStyle = style({
+    backgroundImage: 'var(--jp-nova-icon-train)',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '16px'
+})
 
 
 /**
@@ -77,7 +84,7 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
     };
     let button = new ToolbarButton({
       className: 'backgroundTraining',
-      iconClassName: 'fa fa-envelope',
+      iconClassName: iconStyle + ' jp-Icon jp-Icon-16 jp-ToolbarButtonComponent-icon',
       onClick: callback,
       tooltip: 'Submit for background training.'
     });

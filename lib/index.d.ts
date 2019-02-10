@@ -1,4 +1,4 @@
-import '../style/index.css';
+import '../style/variables.css';
 import { IDisposable } from '@phosphor/disposable';
 import { JupyterLabPlugin } from '@jupyterlab/application';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
@@ -7,6 +7,7 @@ import { NotebookPanel, INotebookModel } from '@jupyterlab/notebook';
  * The plugin registration information.
  */
 declare const plugin: JupyterLabPlugin<void>;
+export declare const iconStyle: string;
 /**
  * A notebook widget extension that adds a button to the toolbar.
  */
