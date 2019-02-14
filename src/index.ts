@@ -2,6 +2,14 @@ import { URLExt } from '@jupyterlab/coreutils';
 import '../style/variables.css'
 
 import {
+    Widget
+} from "@phosphor/widgets";
+
+import {
+    Dialog
+} from "@jupyterlab/apputils";
+
+import {
   IDisposable, DisposableDelegate
 } from '@phosphor/disposable';
 
@@ -81,6 +89,15 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
           let fullUrl = URLExt.join(setting.baseUrl, "nova");
           ServerConnection.makeRequest(fullUrl, fullRequest, setting);
 	  console.log("trololo");
+          const dialog = new Dialog({
+            title: 'Submit Notebook',
+            body: new SubmitJobForm(),
+            buttons: [
+                Dialog.cancelButton(),
+                Dialog.okButton({label: 'Submit'})
+            ]
+        });
+        dialog.launch();
     };
     let button = new ToolbarButton({
       className: 'backgroundTraining',
@@ -102,6 +119,29 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 function activate(app: JupyterLab) {
   app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension());
 };
+
+class SubmitJobForm extends Widget {
+
+    /**
+     * Create a redirect form.
+     */
+    constructor() {
+        super({node: SubmitJobForm.createFormNode()});
+    }
+
+    private static createFormNode(): HTMLElement {
+        const node = document.createElement('div');
+        const label = document.createElement('label');
+        const text = document.createElement('span');
+
+        node.className = 'jp-RedirectForm';
+        text.textContent = 'Enter the Clone URI of the repository';
+
+        label.appendChild(text);
+        node.appendChild(label);
+        return node;
+    }
+}
 
 
 /**
