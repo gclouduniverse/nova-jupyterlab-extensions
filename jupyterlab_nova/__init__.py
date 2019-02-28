@@ -30,15 +30,20 @@ class NovaHandler(APIHandler):
         job_data = {}
         job_data["machine_type"] = "n1-standard-8"
         job_data["machine_count"] = 1
-        job_data["gpu_type"] = "nvidia-tesla-p100"
-        job_data["gpu_count"] = 1
+        if data["gpu_type"]:
+            gpu_type = data["gpu_type"]
+        else:
+            gpu_type = "t4"
+        job_data["gpu_type"] = "nvidia-tesla-{}".format(gpu_type)
+        if data["gpu_count"]:
+            gpu_count = data["gpu_count"]
+        else:
+            gpu_count = 1
+        job_data["gpu_count"] = gpu_count
         job_data["notebook"] = data["notebook"]
         job_data["dir"] = data["dir"]
         home_dir = data["home_dir"]
         yaml_raw = yaml.dump(job_data, default_flow_style=False)
-        write_file = home_dir + "/jobs/" + request_id + ".yaml", "w"
-        # stream = file(write_file, 'w')
-        # yaml.dump(job_data, stream)
         f = open(home_dir + "/jobs/" + request_id + ".yaml", "w")
         f.write(yaml_raw)
 
