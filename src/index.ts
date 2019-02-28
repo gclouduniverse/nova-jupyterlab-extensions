@@ -146,23 +146,65 @@ class SubmitJobForm extends Widget {
         const gpuTypeLabel = document.createElement('span');
         const gpuCountLabel = document.createElement('span');
 
-        gpuTypeLabel.textContent = 'Enter gpu type (could be: k80/p4/t4/p100/v100)';
-        gpuCountLabel.textContent = 'Enter gpu count (depends on the type could be 1 - 8)';
+        gpuTypeLabel.textContent = 'Enter gpu type (not all GPUs avilable in all regions!)';
+        gpuCountLabel.textContent = 'Enter gpu count';
 
         gpuTypeInput.placeholder = "t4";
         gpuTypeInput.setAttribute("id", "gpuTypeInput");
         gpuCountInput.placeholder = "1";
         gpuCountInput.setAttribute("id", "gpuCountInput");
 
+        var gpus = ["k80", "p4", "t4", "p100", "v100"];
+        var selectGpuList = document.createElement("select");
+        selectGpuList.id = "gpuTypeInput";
+
+        for (var i = 0; i < gpus.length; i++) {
+          var option = document.createElement("option");
+          option.value = gpus[i];
+          option.text = gpus[i];
+          selectGpuList.appendChild(option);
+        }
+
+        var k80_counts = ["1", "2", "4", "8"];
+        var selectGpuCount = document.createElement("select");
+        for (var i = 0; i < k80_counts.length; i++) {
+          var option = document.createElement("option");
+          option.value = k80_counts[i];
+          option.text = k80_counts[i];
+          selectGpuCount.appendChild(option);
+        }
+
+        function update_gpu_count() {
+            let gpu_type_to_counts: {[key: string]: string[]} = {
+              "k80": ["1", "2", "4", "8"],
+              "p4": ["1", "2", "4"],
+              "t4": ["1", "2", "4"],
+              "p100": ["1", "2", "4"],
+              "v100": ["1", "2", "4", "8"]
+            }
+            let gpu_type = selectGpuList.value;
+            let gpu_counts = gpu_type_to_counts[gpu_type];
+            while (selectGpuCount.firstChild) {
+              selectGpuCount.removeChild(selectGpuCount.firstChild);
+            }
+            for (var i = 0; i < gpu_counts.length; i++) {
+              var option = document.createElement("option");
+              option.value = gpu_counts[i];
+              option.text = gpu_counts[i];
+              selectGpuCount.appendChild(option);
+            }
+        }
+        selectGpuList.onchange = update_gpu_count;
+
         node.className = 'jp-RedirectForm';
         text.textContent = 'Enter the Clone URI of the repository';
 
         label.appendChild(text);
         node.appendChild(label);
-        node.appendChild(gpuCountInput);
-        node.appendChild(gpuCountLabel);
-        node.appendChild(gpuTypeInput);
+        node.appendChild(selectGpuList);
         node.appendChild(gpuTypeLabel);
+        node.appendChild(selectGpuCount);
+        node.appendChild(gpuCountLabel);
         return node;
     }
 
