@@ -1,4 +1,4 @@
-import re, json, copy, uuid, yaml
+import re, json, copy, uuid, yaml, subprocess
 
 import tornado.gen as gen
 
@@ -10,20 +10,9 @@ __version__ = '0.1.0'
 
 
 class NovaHandler(APIHandler):
-    """
-    A proxy for the GitHub API v3.
 
-    The purpose of this proxy is to provide authentication to the API requests
-    which allows for a higher rate limit. Without this, the rate limit on
-    unauthenticated calls is so limited as to be practically useless.
-    """
     @gen.coroutine
     def post(self, path=''):
-        """
-        Proxy API requests to GitHub, adding authentication parameter(s) if
-        they have been set.
-        """
-        print("$$$$")
         data = json.loads(self.request.body.decode('utf-8'))
         data = self.get_json_body()
         request_id = str(uuid.uuid1())
@@ -44,9 +33,19 @@ class NovaHandler(APIHandler):
         job_data["dir"] = data["dir"]
         home_dir = data["home_dir"]
         yaml_raw = yaml.dump(job_data, default_flow_style=False)
-        f = open(home_dir + "/jobs/" + request_id + ".yaml", "w")
+        f = open(home_dir + "/.jobs/" + request_id + ".yaml", "w")
         f.write(yaml_raw)
 
+    @gen.coroutine
+    def get(self, path=''):
+        command = """
+        INSTANCE_ZONE="/"$(curl http://metadata.google.internal/computeMetadata/v1/instance/zone -H "Metadata-Flavor: Google") &&
+        echo "${INSTANCE_ZONE##/*/}"
+        """
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+        (output, err) = p.communicate()
+        p_status = p.wait()
+        return self.finish(output)
 
 def _jupyter_server_extension_paths():
     return [{

@@ -167,6 +167,7 @@ class SubmitJobForm extends Widget {
 
         var k80_counts = ["1", "2", "4", "8"];
         var selectGpuCount = document.createElement("select");
+        selectGpuCount.id = "gpuCountInput";
         for (var i = 0; i < k80_counts.length; i++) {
           var option = document.createElement("option");
           option.value = k80_counts[i];
