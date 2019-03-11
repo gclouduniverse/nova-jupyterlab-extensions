@@ -109,11 +109,6 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
       onClick: callback,
       tooltip: 'Submit for background training.'
     });
-
-
-
-
-
     panel.toolbar.insertItem(0, 'trainOnBackground', button);
     return new DisposableDelegate(() => {
       button.dispose();
@@ -206,6 +201,18 @@ class SubmitJobForm extends Widget {
         node.appendChild(gpuTypeLabel);
         node.appendChild(selectGpuCount);
         node.appendChild(gpuCountLabel);
+
+
+        let setting = ServerConnection.makeSettings();
+        let fullUrl = URLExt.join(setting.baseUrl, "nova");
+        let fullRequest = {
+          method: 'GET'
+        };
+        ServerConnection.makeRequest(fullUrl, fullRequest, setting).then(response => {
+          let region = response;
+          console.info(region);
+        });
+
         return node;
     }
 
