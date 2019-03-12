@@ -17,17 +17,18 @@ class NovaHandler(APIHandler):
         data = self.get_json_body()
         request_id = str(uuid.uuid1())
         job_data = {}
-        job_data["machine_type"] = "n1-standard-8"
-        job_data["machine_count"] = 1
-        if data["gpu_type"]:
-            gpu_type = data["gpu_type"]
+        job_data["machine_type"] = data["instance_type"]
+        if data["local"]:
+            job_data["machine_count"] = 0
         else:
-            gpu_type = "t4"
-        job_data["gpu_type"] = "nvidia-tesla-{}".format(gpu_type)
-        if data["gpu_count"]:
+            job_data["machine_count"] = 1
+        if data["gpu_type"] and data["gpu_type"] != "N/A":
+            gpu_type = data["gpu_type"]
+            job_data["gpu_type"] = "nvidia-tesla-{}".format(gpu_type)
             gpu_count = data["gpu_count"]
         else:
-            gpu_count = 1
+            gpu_type = "N/A"
+            gpu_count = 0
         job_data["gpu_count"] = gpu_count
         job_data["notebook"] = data["notebook"]
         job_data["dir"] = data["dir"]
@@ -45,7 +46,7 @@ class NovaHandler(APIHandler):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
         (output, err) = p.communicate()
         p_status = p.wait()
-        return self.finish(output)
+        return self.finish(output.decode('ascii').replace("\n", ""))
 
 def _jupyter_server_extension_paths():
     return [{

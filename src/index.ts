@@ -72,7 +72,6 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
       let setting = ServerConnection.makeSettings();
       let fullUrl = URLExt.join(setting.baseUrl, "nova");
           
-      console.log("trololo");
       const dialog = new Dialog({
         title: 'Submit notebook',
         body: new SubmitJobForm(),
@@ -92,8 +91,10 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
                 "home_dir": PageConfig.getOption('serverRoot'),
                 "dir": path_to_folder,
                 "notebook": notebook,
-                "gpu_count": +(result.value["gpu_count"]),
-                "gpu_type": result.value["gpu_type"]
+                "gpu_count": result.value["gpu_count"],
+                "gpu_type": result.value["gpu_type"],
+                "instance_type": result.value["instance_type"],
+                "local": result.value["local"]
               }
             )
           };
@@ -134,31 +135,49 @@ class SubmitJobForm extends Widget {
 
     private static createFormNode(): HTMLElement {
         const node = document.createElement('div');
-        const label = document.createElement('label');
         const text = document.createElement('span');
+        const instanceTypeInput = document.createElement('input');
         const gpuTypeInput = document.createElement('input');
         const gpuCountInput = document.createElement('input');
+        const instanceTypeLabel = document.createElement('span');
         const gpuTypeLabel = document.createElement('span');
         const gpuCountLabel = document.createElement('span');
+        const trainingTypeLabel = document.createElement('span');
 
-        gpuTypeLabel.textContent = 'Enter gpu type (not all GPUs avilable in all regions!)';
-        gpuCountLabel.textContent = 'Enter gpu count';
+        gpuTypeLabel.textContent = 'Enter GPU type';
+        gpuCountLabel.textContent = 'Select GPU count';
+        instanceTypeLabel.textContent = 'Select instnace type';
+        trainingTypeLabel.textContent = 'Select trainig target';
 
         gpuTypeInput.placeholder = "t4";
         gpuTypeInput.setAttribute("id", "gpuTypeInput");
-        gpuCountInput.placeholder = "1";
+        instanceTypeInput.placeholder = "n1-standard-8";
+        instanceTypeInput.setAttribute("id", "instanceTypeInput");
+        gpuCountInput.placeholder = "0";
         gpuCountInput.setAttribute("id", "gpuCountInput");
 
-        var gpus = ["k80", "p4", "t4", "p100", "v100"];
+        var instanceTypes = [
+          "n1-standard-1",
+          "n1-standard-2",
+          "n1-standard-4",
+          "n1-standard-8",
+          "n1-standard-16",
+          "n1-standard-32",
+          "n1-standard-64",
+          "n1-standard-96"
+        ];
+        var selectInstanceTypeList = document.createElement("select");
+        selectInstanceTypeList.id = "instanceTypeInput";
+        for (var i = 0; i < instanceTypes.length; i++) {
+          var option = document.createElement("option");
+          option.value = instanceTypes[i];
+          option.text = instanceTypes[i];
+          selectInstanceTypeList.appendChild(option);
+        }
+        selectInstanceTypeList.value = "n1-standard-4";
+
         var selectGpuList = document.createElement("select");
         selectGpuList.id = "gpuTypeInput";
-
-        for (var i = 0; i < gpus.length; i++) {
-          var option = document.createElement("option");
-          option.value = gpus[i];
-          option.text = gpus[i];
-          selectGpuList.appendChild(option);
-        }
 
         var k80_counts = ["1", "2", "4", "8"];
         var selectGpuCount = document.createElement("select");
@@ -171,6 +190,133 @@ class SubmitJobForm extends Widget {
         }
 
         function update_gpu_count() {
+
+            let instance_types_per_gpu_type_per_count: {[key: string]:  {[key: string]: string[]}} = {
+              "k80": {
+                "1":  [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8"],
+                "2": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16"],
+                "4": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32"],
+                "8": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32",
+                  "n1-standard-64"]},
+              "p4": {
+                "1": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16"],
+                "2": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32"], 
+                "4": [
+                    "n1-standard-1",
+                    "n1-standard-2",
+                    "n1-standard-4",
+                    "n1-standard-8",
+                    "n1-standard-16",
+                    "n1-standard-32",
+                    "n1-standard-64",
+                    "n1-standard-96"]},
+              "t4": {
+                "1": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16"],
+                "2": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32"],
+                "4": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32",
+                  "n1-standard-64",
+                  "n1-standard-96"]
+              },
+              "p100": {
+                "1": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16"],
+                "2": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32"], 
+                "4": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32",
+                  "n1-standard-64"]},
+              "v100": {
+                "1": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8"],
+                "2": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16"],
+                "4": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32"], 
+                "8": [
+                  "n1-standard-1",
+                  "n1-standard-2",
+                  "n1-standard-4",
+                  "n1-standard-8",
+                  "n1-standard-16",
+                  "n1-standard-32",
+                  "n1-standard-64",
+                  "n1-standard-96"]}
+            }
             let gpu_type_to_counts: {[key: string]: string[]} = {
               "k80": ["1", "2", "4", "8"],
               "p4": ["1", "2", "4"],
@@ -179,6 +325,13 @@ class SubmitJobForm extends Widget {
               "v100": ["1", "2", "4", "8"]
             }
             let gpu_type = selectGpuList.value;
+            if (gpu_type == "N/A") {
+              selectGpuCount.hidden = true;
+              gpuCountLabel.hidden = true;
+              return;
+            }
+            selectGpuCount.hidden = false;
+            gpuCountLabel.hidden = false;
             let gpu_counts = gpu_type_to_counts[gpu_type];
             while (selectGpuCount.firstChild) {
               selectGpuCount.removeChild(selectGpuCount.firstChild);
@@ -189,18 +342,77 @@ class SubmitJobForm extends Widget {
               option.text = gpu_counts[i];
               selectGpuCount.appendChild(option);
             }
+            
+            function on_gpu_count_change() {
+              var gpu_cout = selectGpuCount.value;
+              var instance_types = instance_types_per_gpu_type_per_count[gpu_type][gpu_cout];
+              var curren_instance_type = selectInstanceTypeList.value;
+              while (selectInstanceTypeList.firstChild) {
+                selectInstanceTypeList.removeChild(selectInstanceTypeList.firstChild);
+              }
+              for (var i = 0; i < instance_types.length; i++) {
+                var option = document.createElement("option");
+                option.value = instance_types[i];
+                option.text = instance_types[i];
+                selectInstanceTypeList.appendChild(option);
+              }
+              if (instance_types.indexOf(curren_instance_type) > -1) {
+                selectInstanceTypeList.value = curren_instance_type;
+              }
+            }
+            selectGpuCount.onchange = on_gpu_count_change;
         }
         selectGpuList.onchange = update_gpu_count;
 
-        node.className = 'jp-RedirectForm';
-        text.textContent = 'Enter the Clone URI of the repository';
+        var trainingTargets = [
+          "local", 
+          "gce"
+        ]
+        var trainingTypeInput = document.createElement("select");
+        trainingTypeInput.id = "trainingTypeInput";
+        for (var i = 0; i < trainingTargets.length; i++) {
+          var option = document.createElement("option");
+          option.value = trainingTargets[i];
+          option.text = trainingTargets[i];
+          trainingTypeInput.appendChild(option);
+        }
+        function change_training_type() {
+          var trainingType = trainingTypeInput.value;
+          if (trainingType == "local") {
+            selectGpuCount.hidden = true;
+            gpuCountLabel.hidden = true;
+            selectGpuList.hidden = true;
+            gpuTypeLabel.hidden = true;
+            selectInstanceTypeList.hidden = true;
+            instanceTypeLabel.hidden = true;
+          } else {
+            selectGpuList.hidden = false;
+            gpuTypeLabel.hidden = false;
+            selectInstanceTypeList.hidden = false;
+            instanceTypeLabel.hidden = false;
+            update_gpu_count();
+          }
+        }
+        trainingTypeInput.onchange = change_training_type;
+        selectGpuCount.hidden = true;
+        gpuCountLabel.hidden = true;
+        selectGpuList.hidden = true;
+        gpuTypeLabel.hidden = true;
+        selectInstanceTypeList.hidden = true;
+        instanceTypeLabel.hidden = true;
 
-        label.appendChild(text);
-        node.appendChild(label);
-        node.appendChild(selectGpuList);
+
+        node.className = 'jp-RedirectForm';
+        text.textContent = 'Enter configuratio for the background trainig';
+
+        node.appendChild(trainingTypeLabel);
+        node.appendChild(trainingTypeInput);
+        node.appendChild(instanceTypeLabel);
+        node.appendChild(selectInstanceTypeList);
         node.appendChild(gpuTypeLabel);
-        node.appendChild(selectGpuCount);
+        node.appendChild(selectGpuList);
         node.appendChild(gpuCountLabel);
+        node.appendChild(selectGpuCount);
 
 
         let setting = ServerConnection.makeSettings();
@@ -209,17 +421,68 @@ class SubmitJobForm extends Widget {
           method: 'GET'
         };
         ServerConnection.makeRequest(fullUrl, fullRequest, setting).then(response => {
-          let region = response;
-          console.info(region);
+          response.text().then(function processText(region: string) {
+            console.info("\"" + region + "\"");
+            let gpu_type_per_region: {[key: string]: string[]} = {
+              "asia-east1-a": ["k80"],
+              "asia-east1-b": ["k80"],
+              "asia-east1-c": ["v100"],
+              "asia-northeast1-a": ["t4"],
+              "asia-south1-b": ["t4"],
+              "asia-southeast1-b": ["t4", "p4"],
+              "asia-southeast1-c": ["p4"],
+              "australia-southeast1-a": ["p4"],
+              "australia-southeast1-b": ["p4"],
+              "europe-west1-b": ["k80"],
+              "europe-west1-d": ["k80"],
+              "europe-west4-a": ["v100"],
+              "europe-west4-b": ["t4", "p4", "v100"],
+              "europe-west4-c": ["t4", "p4", "v100"],
+              "southamerica-east1-c": ["t4"],
+              "northamerica-northeast1-a": ["p4"],
+              "northamerica-northeast1-b": ["p4"],
+              "northamerica-northeast1-c": ["p4"],
+              "us-central1-a": ["t4", "p4", "v100", "k80"],
+              "us-central1-b": ["t4", "v100"],
+              "us-central1-c": ["p4", "k80"],
+              "us-central1-f": ["v100"],
+              "us-east1-c": ["t4", "k80"],
+              "us-east1-d": ["t4", "k80"],
+              "us-east4-a": ["p4"],
+              "us-east4-b": ["p4"],
+              "us-east4-c": ["p4"],
+              "us-west1-a": ["t4", "v100", "k80"],
+              "us-west1-b": ["t4", "v100", "k80"],
+              "us-west2-b": ["p4"],
+              "us-west2-c": ["p4"]
+            };
+            console.info(gpu_type_per_region);
+            console.info(gpu_type_per_region[region]);
+            var gpus = gpu_type_per_region[region];
+            gpus.push("N/A");
+            console.info(gpus);
+            while (selectGpuList.firstChild) {
+              selectGpuList.removeChild(selectGpuList.firstChild);
+            }
+            for (var i = 0; i < gpus.length; i++) {
+              var option = document.createElement("option");
+              option.value = gpus[i];
+              option.text = gpus[i];
+              selectGpuList.appendChild(option);
+            }
+            selectGpuList.value = "N/A";
+          });
         });
-
+        
         return node;
     }
 
-    getValue(): {[value: string]: string} {
+    getValue(): {gpu_type: string, gpu_count: number, instance_type: string, local:boolean} {
       return {
         "gpu_type": (<HTMLInputElement>this.node.querySelector('#gpuTypeInput')).value,
-        "gpu_count": (<HTMLInputElement>this.node.querySelector('#gpuCountInput')).value
+        "gpu_count": +(<HTMLInputElement>this.node.querySelector('#gpuCountInput')).value,
+        "instance_type": (<HTMLInputElement>this.node.querySelector('#instanceTypeInput')).value,
+        "local": (<HTMLInputElement>this.node.querySelector('#trainingTypeInput')).value == "local"
       };
     }
 }
@@ -229,3 +492,4 @@ class SubmitJobForm extends Widget {
  * Export the plugin as default.
  */
 export default plugin;
+
