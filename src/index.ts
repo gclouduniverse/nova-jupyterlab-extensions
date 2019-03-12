@@ -146,8 +146,8 @@ class SubmitJobForm extends Widget {
 
         gpuTypeLabel.textContent = 'Enter GPU type';
         gpuCountLabel.textContent = 'Select GPU count';
-        instanceTypeLabel.textContent = 'Select instnace type';
-        trainingTypeLabel.textContent = 'Select trainig target';
+        instanceTypeLabel.textContent = 'Select instance type';
+        trainingTypeLabel.textContent = 'Select training target';
 
         gpuTypeInput.placeholder = "t4";
         gpuTypeInput.setAttribute("id", "gpuTypeInput");
@@ -403,7 +403,7 @@ class SubmitJobForm extends Widget {
 
 
         node.className = 'jp-RedirectForm';
-        text.textContent = 'Enter configuratio for the background trainig';
+        text.textContent = 'Enter configuratio for the background training';
 
         node.appendChild(trainingTypeLabel);
         node.appendChild(trainingTypeInput);
