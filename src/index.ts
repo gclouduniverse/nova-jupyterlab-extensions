@@ -365,8 +365,8 @@ class SubmitJobForm extends Widget {
         selectGpuList.onchange = update_gpu_count;
 
         var trainingTargets = [
-          "local", 
-          "gce"
+          "gce",
+          // "local" - local trainig is not yet supported and should be reanabled as soon as it is working.
         ]
         var trainingTypeInput = document.createElement("select");
         trainingTypeInput.id = "trainingTypeInput";
@@ -396,10 +396,10 @@ class SubmitJobForm extends Widget {
         trainingTypeInput.onchange = change_training_type;
         selectGpuCount.hidden = true;
         gpuCountLabel.hidden = true;
-        selectGpuList.hidden = true;
-        gpuTypeLabel.hidden = true;
-        selectInstanceTypeList.hidden = true;
-        instanceTypeLabel.hidden = true;
+        selectGpuList.hidden = false;
+        gpuTypeLabel.hidden = false;
+        selectInstanceTypeList.hidden = false;
+        instanceTypeLabel.hidden = false;
 
 
         node.className = 'jp-RedirectForm';
