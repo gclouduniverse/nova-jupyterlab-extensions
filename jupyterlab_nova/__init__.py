@@ -5,7 +5,7 @@ import tornado.gen as gen
 from notebook.utils import url_path_join, url_escape
 from notebook.base.handlers import APIHandler
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
 
