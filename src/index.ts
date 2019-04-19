@@ -94,7 +94,8 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
                 "gpu_count": result.value["gpu_count"],
                 "gpu_type": result.value["gpu_type"],
                 "instance_type": result.value["instance_type"],
-                "local": result.value["local"]
+                "local": result.value["local"],
+                "parameter": result.value["parameter"]
               }
             )
           };
@@ -139,15 +140,18 @@ class SubmitJobForm extends Widget {
         const instanceTypeInput = document.createElement('input');
         const gpuTypeInput = document.createElement('input');
         const gpuCountInput = document.createElement('input');
+        const parameterInput = document.createElement('input');
         const instanceTypeLabel = document.createElement('span');
         const gpuTypeLabel = document.createElement('span');
         const gpuCountLabel = document.createElement('span');
         const trainingTypeLabel = document.createElement('span');
+        const parameterLabel = document.createElement('span');
 
         gpuTypeLabel.textContent = 'Enter GPU type';
         gpuCountLabel.textContent = 'Select GPU count';
         instanceTypeLabel.textContent = 'Select instance type';
         trainingTypeLabel.textContent = 'Select training target';
+        parameterLabel.textContent = 'Notebook parameters (optional)'
 
         gpuTypeInput.placeholder = "t4";
         gpuTypeInput.setAttribute("id", "gpuTypeInput");
@@ -155,6 +159,12 @@ class SubmitJobForm extends Widget {
         instanceTypeInput.setAttribute("id", "instanceTypeInput");
         gpuCountInput.placeholder = "0";
         gpuCountInput.setAttribute("id", "gpuCountInput");
+        parameterInput.placeholder = "";
+        parameterInput.setAttribute("id", "parameterInput");
+
+        var setParameterBox = document.createElement('input');
+        setParameterBox.type = 'text';
+         setParameterBox.id = "parameterInput";
 
         var instanceTypes = [
           "n1-standard-1",
@@ -400,6 +410,8 @@ class SubmitJobForm extends Widget {
         gpuTypeLabel.hidden = false;
         selectInstanceTypeList.hidden = false;
         instanceTypeLabel.hidden = false;
+        parameterLabel.hidden = false;
+        setParameterBox.hidden = false;
 
 
         node.className = 'jp-RedirectForm';
@@ -413,6 +425,9 @@ class SubmitJobForm extends Widget {
         node.appendChild(selectGpuList);
         node.appendChild(gpuCountLabel);
         node.appendChild(selectGpuCount);
+        node.appendChild(parameterLabel);
+        node.appendChild(setParameterBox)
+        node.appendChild()
 
 
         let setting = ServerConnection.makeSettings();
@@ -482,7 +497,8 @@ class SubmitJobForm extends Widget {
         "gpu_type": (<HTMLInputElement>this.node.querySelector('#gpuTypeInput')).value,
         "gpu_count": +(<HTMLInputElement>this.node.querySelector('#gpuCountInput')).value,
         "instance_type": (<HTMLInputElement>this.node.querySelector('#instanceTypeInput')).value,
-        "local": (<HTMLInputElement>this.node.querySelector('#trainingTypeInput')).value == "local"
+        "local": (<HTMLInputElement>this.node.querySelector('#trainingTypeInput')).value == "local",
+        "parameter": (<HTMLInputElement>this.node.querySelector('#parameterInput')).value
       };
     }
 }

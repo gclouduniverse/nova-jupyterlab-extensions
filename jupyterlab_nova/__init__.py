@@ -29,6 +29,14 @@ class NovaHandler(APIHandler):
         else:
             gpu_type = "N/A"
             gpu_count = 0
+        parameters = data["parameter"].strip().split(",")
+        param_string = ""
+        for p in parameters:
+            lr = p.split("=", 1)
+            if len(lr) != 2:
+                raise Exception('Parameter format wrong: {}'.format(p))
+            param_string += "-p " + lr[0].strip() + " " + lr[1].strip() + " "
+        job_data["parameter"] = param_string[:-1]
         job_data["gpu_count"] = gpu_count
         job_data["notebook"] = data["notebook"]
         job_data["dir"] = data["dir"]
