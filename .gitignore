@@ -62,3 +62,6 @@ typings/
 
 # idea
 .idea/
+
+# python virtual env
+venv/
