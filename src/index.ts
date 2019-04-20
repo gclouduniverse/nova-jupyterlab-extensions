@@ -492,7 +492,7 @@ class SubmitJobForm extends Widget {
         return node;
     }
 
-    getValue(): {gpu_type: string, gpu_count: number, instance_type: string, local:boolean} {
+    getValue(): {gpu_type: string, gpu_count: number, instance_type: string, local:boolean, parameter:string} {
       return {
         "gpu_type": (<HTMLInputElement>this.node.querySelector('#gpuTypeInput')).value,
         "gpu_count": +(<HTMLInputElement>this.node.querySelector('#gpuCountInput')).value,
