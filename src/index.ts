@@ -426,8 +426,7 @@ class SubmitJobForm extends Widget {
         node.appendChild(gpuCountLabel);
         node.appendChild(selectGpuCount);
         node.appendChild(parameterLabel);
-        node.appendChild(setParameterBox)
-        node.appendChild()
+        node.appendChild(setParameterBox);
 
 
         let setting = ServerConnection.makeSettings();
