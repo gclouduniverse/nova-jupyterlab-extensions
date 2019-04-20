@@ -1,5 +1,4 @@
 import { URLExt } from '@jupyterlab/coreutils';
-import '../style/variables.css'
 
 import {
     Widget
@@ -14,7 +13,7 @@ import {
 } from '@phosphor/disposable';
 
 import {
-  JupyterLab, JupyterLabPlugin
+  JupyterLab, JupyterLabPlugin, ILayoutRestorer
 } from '@jupyterlab/application';
 
 import {
@@ -35,13 +34,22 @@ import {
 
 import { ServerConnection } from '@jupyterlab/services';
 
+import { JobsWidget } from './jobs';
+
 /**
  * The plugin registration information.
  */
-const plugin: JupyterLabPlugin<void> = {
-  activate,
-  id: 'my-extension-name:buttonPlugin',
-  autoStart: true
+const buttonPlugin: JupyterLabPlugin<void> = {
+  activate: activateButton,
+  id: 'nova:button',
+  autoStart: true,
+};
+
+const jobsPlugin: JupyterLabPlugin<void> = {
+  activate: activateJobs,
+  id: 'nova:jobs',
+  autoStart: true,
+  requires: [ILayoutRestorer],
 };
 
 import { style } from 'typestyle'
@@ -118,11 +126,31 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
   }
 }
 
+function activateButton(  app: JupyterLab) {
+  console.log('JupyterLab nova button extension is activated!');
+  app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension());
+}
+
 /**
  * Activate the extension.
  */
-function activate(app: JupyterLab) {
-  app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension());
+function activateJobs(
+  app: JupyterLab,
+  restorer: ILayoutRestorer
+): void {
+  console.log('JupyterLab nova jobs extension is activated!');
+  let sidePanel = new JobsWidget();
+
+  sidePanel.id = 'jp-nova-jobs'
+  sidePanel.title.iconClass = 'jp-FolderIcon jp-SideBar-tabIcon';
+  sidePanel.title.caption = 'Background Jobs';
+
+  
+  if (restorer) {
+    restorer.add(sidePanel, 'background-jobs');
+  }
+
+  app.shell.addToLeftArea(sidePanel, {rank: 453} );
 };
 
 class SubmitJobForm extends Widget {
@@ -506,5 +534,5 @@ class SubmitJobForm extends Widget {
 /**
  * Export the plugin as default.
  */
-export default plugin;
+export default [buttonPlugin, jobsPlugin];
 
