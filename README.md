@@ -1,3 +1,6 @@
+## Note
+For **latest** version of this project please take a look [here](https://github.com/GoogleCloudPlatform/ai-platform-samples/tree/master/notebooks/nova-jupyterlab-extensions)
+
 # Nova
 
 Jupyter Notebook submission to GCP
