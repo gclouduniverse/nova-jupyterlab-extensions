@@ -29,12 +29,14 @@ import {
 } from '@jupyterlab/notebook';
 
 import {
-  PageConfig 
+  PageConfig
 } from '@jupyterlab/coreutils';
 
 import { ServerConnection } from '@jupyterlab/services';
 
 import { JobsWidget } from './jobs';
+
+import { SchedulerForm} from './scheduler/schedulerForm';
 
 /**
  * The plugin registration information.
@@ -52,13 +54,20 @@ const jobsPlugin: JupyterLabPlugin<void> = {
   requires: [ILayoutRestorer],
 };
 
-import { style } from 'typestyle'
+const schedulerPlugin: JupyterLabPlugin<void> = {
+  activate: activateScheduler,
+  id: 'nova:scheduler',
+  autoStart: true,
+  requires: [ILayoutRestorer],
+};
+
+import { style } from 'typestyle';
 
 export const iconStyle = style({
     backgroundImage: 'var(--jp-nova-icon-train)',
     backgroundRepeat: 'no-repeat',
     backgroundSize: '16px'
-})
+});
 
 
 /**
@@ -73,13 +82,13 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 
     let callback = () => {
       let notebook_path = panel.context.contentsModel.path;
-      let notebook_path_array = notebook_path.split("/")
-      let notebook = notebook_path_array[notebook_path_array.length - 1]
+      let notebook_path_array = notebook_path.split("/");
+      let notebook = notebook_path_array[notebook_path_array.length - 1];
       let path_to_folder = PageConfig.getOption('serverRoot') + "/" + notebook_path
       path_to_folder = path_to_folder.substring(0, path_to_folder.length - notebook.length);
       let setting = ServerConnection.makeSettings();
       let fullUrl = URLExt.join(setting.baseUrl, "nova");
-          
+
       const dialog = new Dialog({
         title: 'Submit notebook',
         body: new SubmitJobForm(),
@@ -145,7 +154,7 @@ function activateJobs(
   sidePanel.title.iconClass = 'jp-FolderIcon jp-SideBar-tabIcon';
   sidePanel.title.caption = 'Background Jobs';
 
-  
+
   if (restorer) {
     restorer.add(sidePanel, 'background-jobs');
   }
@@ -270,7 +279,7 @@ class SubmitJobForm extends Widget {
                   "n1-standard-4",
                   "n1-standard-8",
                   "n1-standard-16",
-                  "n1-standard-32"], 
+                  "n1-standard-32"],
                 "4": [
                     "n1-standard-1",
                     "n1-standard-2",
@@ -317,7 +326,7 @@ class SubmitJobForm extends Widget {
                   "n1-standard-4",
                   "n1-standard-8",
                   "n1-standard-16",
-                  "n1-standard-32"], 
+                  "n1-standard-32"],
                 "4": [
                   "n1-standard-1",
                   "n1-standard-2",
@@ -344,7 +353,7 @@ class SubmitJobForm extends Widget {
                   "n1-standard-4",
                   "n1-standard-8",
                   "n1-standard-16",
-                  "n1-standard-32"], 
+                  "n1-standard-32"],
                 "8": [
                   "n1-standard-1",
                   "n1-standard-2",
@@ -354,14 +363,14 @@ class SubmitJobForm extends Widget {
                   "n1-standard-32",
                   "n1-standard-64",
                   "n1-standard-96"]}
-            }
+            };
             let gpu_type_to_counts: {[key: string]: string[]} = {
               "k80": ["1", "2", "4", "8"],
               "p4": ["1", "2", "4"],
               "t4": ["1", "2", "4"],
               "p100": ["1", "2", "4"],
               "v100": ["1", "2", "4", "8"]
-            }
+            };
             let gpu_type = selectGpuList.value;
             if (gpu_type == "N/A") {
               selectGpuCount.hidden = true;
@@ -380,7 +389,7 @@ class SubmitJobForm extends Widget {
               option.text = gpu_counts[i];
               selectGpuCount.appendChild(option);
             }
-            
+
             function on_gpu_count_change() {
               var gpu_cout = selectGpuCount.value;
               var instance_types = instance_types_per_gpu_type_per_count[gpu_type][gpu_cout];
@@ -515,7 +524,7 @@ class SubmitJobForm extends Widget {
             selectGpuList.value = "N/A";
           });
         });
-        
+
         return node;
     }
 
@@ -530,9 +539,26 @@ class SubmitJobForm extends Widget {
     }
 }
 
+/**
+ * Activate the extension.
+ */
+function activateScheduler(app: JupyterLab, restorer: ILayoutRestorer): void {
+  console.log('JupyterLab nova scheduler extension is activated!');
+  let sidePanel = new SchedulerForm();
+
+  sidePanel.id = 'jp-nova-scheduler'
+  sidePanel.title.iconClass = 'jp-FolderIcon jp-SideBar-tabIcon';
+  sidePanel.title.caption = 'Scheduler';
+
+
+  if (restorer) {
+    restorer.add(sidePanel, 'scheduler');
+  }
+
+  app.shell.addToLeftArea(sidePanel, {rank: 450});
+};
 
 /**
  * Export the plugin as default.
  */
-export default [buttonPlugin, jobsPlugin];
-
+export default [buttonPlugin, jobsPlugin, schedulerPlugin];
