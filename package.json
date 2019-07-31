@@ -1,6 +1,6 @@
 {
   "name": "nova",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Jupyter Notebook submission to GCP",
   "keywords": [
     "jupyter",
@@ -28,39 +28,34 @@
     "build": "tsc",
     "clean": "rimraf lib",
     "prepare": "npm run clean && npm run build",
+    "start": "concurrently -k -p \"[{name}]\" -n \"Typescript,JupyterLab\" -c \"green.bold,yellow.bold\" \"npm run watch\" \"jupyter lab --watch\"",
     "watch": "tsc -w"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.19.1",
-    "@jupyterlab/apputils": "^0.19.1",
-    "@jupyterlab/coreutils": "^2.2.1",
-    "@jupyterlab/docregistry": "^0.19.1",
-    "@jupyterlab/filebrowser": "^0.19.1",
-    "@jupyterlab/mainmenu": "^0.8.0",
-    "@jupyterlab/notebook": "^0.19.2",
-    "@phosphor/disposable": "^1.1.2",
-    "@phosphor/widgets": "^1.6.0",
-    "file-system": "^2.2.2",
-    "fs-extra": "^7.0.1",
-    "typestyle": "^2.0.0"
+    "@jupyterlab/application": "^1.0.2",
+    "@jupyterlab/apputils": "^1.0.2",
+    "@jupyterlab/coreutils": "^3.0.0",
+    "@jupyterlab/docregistry": "^1.0.2",
+    "@jupyterlab/filebrowser": "^1.0.3",
+    "@jupyterlab/mainmenu": "^1.0.2",
+    "@jupyterlab/notebook": "^1.0.2",
+    "@phosphor/disposable": "^1.2.0",
+    "@phosphor/widgets": "^1.8.1"
   },
   "devDependencies": {
-    "@types/fs-extra": "~4.0.3",
+    "@types/fs-extra": "^8.0.0",
+    "@types/gapi": "0.0.39",
+    "@types/gapi.client.cloudfunctions": "^1.0.1",
+    "@types/gapi.client.ml": "^1.0.1",
+    "@types/gapi.client.servicemanagement": "^1.0.1",
+    "@types/gapi.client.storage": "^1.0.1",
+    "concurrently": "^4.1.1",
+    "nodemon": "^1.19.1",
     "rimraf": "^2.6.1",
-    "typescript": "~3.1.1",
-    "typestyle": "^2.0.0"
+    "typescript": "^3.5.3",
+    "typestyle": "^2.0.4"
   },
   "jupyterlab": {
-    "extension": true,
-    "discovery": {
-      "server": {
-        "managers": [
-          "pip"
-        ],
-        "base": {
-          "name": "jupyterlab_nova"
-        }
-      }
-    }
+    "extension": true
   }
 }

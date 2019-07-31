@@ -2,16 +2,24 @@
 Setup module for the jupyterlab_nova proxy extension
 """
 import setuptools
-from setupbase import (
-    create_cmdclass, ensure_python, find_packages
-    )
+from setupbase import create_cmdclass, ensure_python, find_packages
+import os.path
+import json
 
-data_files_spec = [
-    ('etc/jupyter/jupyter_notebook_config.d',
-     'jupyter-config/jupyter_notebook_config.d', 'jupyterlab_nova.json'),
+version = ''
+with open(os.path.join(os.path.dirname(__file__), 'package.json')) as f:
+  version = json.load(f)['version']
+
+data_files_spec = [(
+  'etc/jupyter/jupyter_notebook_config.d',
+  'jupyter-config/jupyter_notebook_config.d',
+  'jupyterlab_nova.json'
+)]
+
+requires = [
+  line.strip() for line in open('requirements.txt').readlines()
+  if not line.startswith("#")
 ]
-
-requires = [line.strip() for line in open('requirements.txt').readlines() if not line.startswith("#")]
 
 cmdclass = create_cmdclass(data_files_spec=data_files_spec)
 
@@ -37,7 +45,4 @@ setup_dict = dict(
     install_requires=requires
 )
 
-setuptools.setup(
-    version="0.3.0",
-    **setup_dict
-)
+setuptools.setup(version=version, **setup_dict)
