@@ -1,6 +1,8 @@
 import {DOMUtils} from '@jupyterlab/apputils';
 import {Widget} from '@phosphor/widgets';
-import {createInput, InputConfig} from '../util/createInput';
+
+import {GcpService} from '../service/gcp';
+import {createInput} from '../util/createInput';
 
 const WIDGET_CLASS = 'jp-Jobs';
 
@@ -16,7 +18,7 @@ export class SchedulerForm extends Widget {
   /**
    * Create a redirect form.
    */
-  constructor() {
+  constructor(private gcpService: GcpService) {
     super({node: SchedulerForm.createFormNode()});
 
     this.addClass(WIDGET_CLASS);
@@ -79,14 +81,26 @@ export class SchedulerForm extends Widget {
     const formNode = document.createElement('div');
     formNode.className = FORM_CLASS;
 
-    const runNameConfig: InputConfig = {
-      inputType: 'input',
-      id: 'runNameInput',
-      label: 'Run name'
-    };
-
-    const runNameInputNode = createInput(runNameConfig);
+    const runNameInputNode = createInput(
+        {inputType: 'input', id: 'runNameInput', label: 'Run name'});
     formNode.appendChild(runNameInputNode);
+
+    const gcsInputNode = createInput(
+        {inputType: 'input', id: 'bucketNameInput', label: 'GCS Path'});
+    formNode.appendChild(gcsInputNode);
+
+    const submitButton = document.createElement('input');
+    submitButton.id = 'schedulerSubmit';
+    submitButton.type = 'submit';
+    submitButton.onclick = () => {
+      const content =
+          (document.getElementById('runNameInput') as HTMLInputElement).value;
+      const path =
+          (document.getElementById('bucketNameInput') as HTMLInputElement)
+              .value;
+      this.gcpService.uploadNotebook(content, path);
+    };
+    formNode.appendChild(submitButton);
 
     node.appendChild(formNode);
   }

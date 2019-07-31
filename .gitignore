@@ -63,5 +63,17 @@ typings/
 # idea
 .idea/
 
+# VScode settings
+.vscode/
+
 # python virtual env
 venv/
+
+# Plugin binary
+lib/
+
+# Python package stuff
+__pycache__
+*.egg-info
+.ipynb_checkpoints/
+*.ipynb

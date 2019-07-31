@@ -25,15 +25,18 @@ sudo jupyter labextension install
 For a development install (requires npm version 4 or later), do the following in the repository directory:
 
 ```bash
-npm install   # install npm package dependencies
-npm run build 
-sudo jupyter labextension install  # install the current directory as an extension
-```
+# Create a Python 3 virtualenv and install jupyterlab and the project in edit mode
+virtualenv -p python3 venv
+source venv/bin/activate
+pip install jupyterlab
+pip install -e
 
-To rebuild the package and the JupyterLab app:
+# Install the npm package and the extension
+npm install
+jupyter labextension install . --no-build
 
-```bash
-npm run build
-jupyter lab build
+# Now, run npm start which starts the Typescript compiler in watch mode on the
+# extension directory as well as the JupyterLab server
+npm start
 ```
 

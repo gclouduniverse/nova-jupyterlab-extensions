@@ -11,7 +11,12 @@
     "strict": true,
     "strictNullChecks": false,
     "target": "es2015",
-    "types": []
+    "types": [
+      "gapi",
+      "gapi.client",
+      "gapi.client.servicemanagement",
+      "gapi.client.storage"
+    ]
   },
-  "include": ["src/*"]
+  "include": ["src"]
 }
