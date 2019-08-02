@@ -12,7 +12,6 @@ import {style} from 'typestyle';
 
 import {JobsWidget} from './jobs';
 import {SchedulerForm} from './scheduler/schedulerForm';
-import {GapiService} from './service/gapi';
 import {GcpService} from './service/gcp';
 
 /**
@@ -43,8 +42,6 @@ export const iconStyle = style({
   backgroundRepeat: 'no-repeat',
   backgroundSize: '16px'
 });
-
-const gcpService = new GcpService(new GapiService());
 
 /**
  * A notebook widget extension that adds a button to the toolbar.
@@ -482,7 +479,8 @@ class SubmitJobForm extends Widget {
 function activateScheduler(
     app: JupyterFrontEnd, restorer: ILayoutRestorer): void {
   console.log('JupyterFrontEnd nova scheduler extension is activated!');
-  let sidePanel = new SchedulerForm(gcpService);
+  const gcpClient = new GcpService();
+  let sidePanel = new SchedulerForm(gcpClient);
 
   sidePanel.id = 'jp-nova-scheduler'
   sidePanel.title.iconClass = 'jp-FolderIcon jp-SideBar-tabIcon';

@@ -17,7 +17,6 @@ class AuthProvider:
     self._auth, self._project = google.auth.default(scopes=SCOPE)
 
   def refresh(self):
-
     if not self._auth.valid:
       app_log.info('Refreshing Google Cloud Credential')
       self._auth.refresh(Request())
@@ -29,8 +28,8 @@ class AuthProvider:
   def get(cls):
     if not cls._instance:
       auth = AuthProvider()
-      auth.refresh()
       cls._instance = auth
+    cls._instance.refresh()
     return cls._instance
 
 
