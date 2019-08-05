@@ -12,7 +12,7 @@ import {style} from 'typestyle';
 
 import {JobsWidget} from './jobs';
 import {SchedulerForm} from './scheduler/schedulerForm';
-import {GcpService} from './service/gcp';
+import {defaultGapiProvider, GcpService} from './service/gcp';
 
 /**
  * The plugin registration information.
@@ -479,7 +479,7 @@ class SubmitJobForm extends Widget {
 function activateScheduler(
     app: JupyterFrontEnd, restorer: ILayoutRestorer): void {
   console.log('JupyterFrontEnd nova scheduler extension is activated!');
-  const gcpClient = new GcpService();
+  const gcpClient = new GcpService(defaultGapiProvider());
   let sidePanel = new SchedulerForm(gcpClient);
 
   sidePanel.id = 'jp-nova-scheduler'
