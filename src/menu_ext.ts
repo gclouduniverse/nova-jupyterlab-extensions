@@ -1,6 +1,6 @@
 import '../style/index.css';
 
-import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
+import {JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
 import {ICommandPalette} from '@jupyterlab/apputils';
 import {IFileBrowserFactory} from '@jupyterlab/filebrowser';
 import {IMainMenu} from '@jupyterlab/mainmenu';
@@ -59,7 +59,7 @@ class XkcdWidget extends Widget {
  * Activate the xckd widget extension.
  */
 function activate(
-    app: JupyterFrontEnd, palette: ICommandPalette, files: IFileBrowserFactory,
+    app: JupyterLab, palette: ICommandPalette, files: IFileBrowserFactory,
     mainMenu: IMainMenu) {
   console.log('JupyterLab extension jupyterlab_xkcd is activated!');
 
@@ -81,7 +81,7 @@ function activate(
 
       if (!widget.isAttached) {
         // Attach the widget to the main work area if it's not there
-        app.shell.add(widget, 'main');
+        app.shell.addToMainArea(widget);
       }
       // Refresh the comic in the widget
       widget.update();
@@ -141,7 +141,7 @@ function activate(
 /**
  * Initialization data for the jlab_xkcd extension.
  */
-const extension: JupyterFrontEndPlugin<void> = {
+const extension: JupyterLabPlugin<void> = {
   id: 'jlab_xkcd',
   autoStart: true,
   requires: [ICommandPalette, IFileBrowserFactory, IMainMenu],

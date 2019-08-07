@@ -1,4 +1,4 @@
-import {ILayoutRestorer, JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
+import {ILayoutRestorer, JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
 import {Dialog} from '@jupyterlab/apputils';
 import {ToolbarButton} from '@jupyterlab/apputils';
 import {URLExt} from '@jupyterlab/coreutils';
@@ -17,20 +17,20 @@ import {defaultGapiProvider, GcpService} from './service/gcp';
 /**
  * The plugin registration information.
  */
-const buttonPlugin: JupyterFrontEndPlugin<void> = {
+const buttonPlugin: JupyterLabPlugin<void> = {
   activate: activateButton,
   id: 'nova:button',
   autoStart: true,
 };
 
-const jobsPlugin: JupyterFrontEndPlugin<void> = {
+const jobsPlugin: JupyterLabPlugin<void> = {
   activate: activateJobs,
   id: 'nova:jobs',
   autoStart: true,
   requires: [ILayoutRestorer],
 };
 
-const schedulerPlugin: JupyterFrontEndPlugin<void> = {
+const schedulerPlugin: JupyterLabPlugin<void> = {
   activate: activateScheduler,
   id: 'nova:scheduler',
   autoStart: true,
@@ -107,7 +107,7 @@ export class ButtonExtension implements
   }
 }
 
-function activateButton(app: JupyterFrontEnd) {
+function activateButton(app: JupyterLab) {
   console.log('JupyterFrontEnd nova button extension is activated!');
   app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension());
 }
@@ -115,7 +115,7 @@ function activateButton(app: JupyterFrontEnd) {
 /**
  * Activate the extension.
  */
-function activateJobs(app: JupyterFrontEnd, restorer: ILayoutRestorer): void {
+function activateJobs(app: JupyterLab, restorer: ILayoutRestorer): void {
   console.log('JupyterFrontEnd nova jobs extension is activated!');
   let sidePanel = new JobsWidget();
 
@@ -128,7 +128,7 @@ function activateJobs(app: JupyterFrontEnd, restorer: ILayoutRestorer): void {
     restorer.add(sidePanel, 'background-jobs');
   }
 
-  app.shell.add(sidePanel, 'left', {rank: 453});
+  app.shell.addToLeftArea(sidePanel, {rank: 453});
 };
 
 class SubmitJobForm extends Widget {
@@ -476,8 +476,7 @@ class SubmitJobForm extends Widget {
 /**
  * Activate the extension.
  */
-function activateScheduler(
-    app: JupyterFrontEnd, restorer: ILayoutRestorer): void {
+function activateScheduler(app: JupyterLab, restorer: ILayoutRestorer): void {
   console.log('JupyterFrontEnd nova scheduler extension is activated!');
   const gcpClient = new GcpService(defaultGapiProvider());
   let sidePanel = new SchedulerForm(gcpClient);
@@ -491,7 +490,7 @@ function activateScheduler(
     restorer.add(sidePanel, 'scheduler');
   }
 
-  app.shell.add(sidePanel, 'left', {rank: 450});
+  app.shell.addToLeftArea(sidePanel, {rank: 450});
 };
 
 /**
