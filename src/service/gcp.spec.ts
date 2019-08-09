@@ -1,10 +1,29 @@
 import {GcpService} from './gcp';
 
-const FAKE_GAPI_PROMISE = Promise.resolve();
+const realSetTimeout = global.setTimeout;
+const FAKE_GAPI_PROVIDER = Promise.resolve();
 const FAKE_AUTH = {
   token: 'authtoken',
   project: 'test-project'
 };
+
+// Helper to ensure that interval calls to the poller are scheduled immediately
+// Implementation borrowed from
+// https://github.com/facebook/jest/issues/7151#issuecomment-463370069
+function pollerHelper(): () => void {
+  let running = false;
+  const start = async () => {
+    running = true;
+    while (running) {
+      jest.runOnlyPendingTimers();
+      await new Promise((r) => realSetTimeout(r, 1));
+    }
+  };
+  start();
+  return () => {
+    running = false;
+  };
+}
 
 // Fake implementation of fetch to get Auth token
 function fakeAuthFetch(): Promise<Response> {
@@ -12,10 +31,11 @@ function fakeAuthFetch(): Promise<Response> {
 }
 
 describe('GcpService', () => {
-  const gcpService = new GcpService(FAKE_GAPI_PROMISE);
+  const gcpService = new GcpService(FAKE_GAPI_PROVIDER);
   let gapiRequestMock: jest.Mock;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     gapiRequestMock = jest.fn();
 
     (global as any).fetch = jest.fn(fakeAuthFetch);
@@ -28,57 +48,239 @@ describe('GcpService', () => {
   });
 
   describe('API Services', () => {
-    it('Gets service statuses with none enabled', async () => {
-      gapiRequestMock.mockResolvedValue({result: {services: []}});
-      const services = await gcpService.getServiceStatuses();
-
-      expect(gapi.client.setToken).toBeCalledWith({
-        access_token: FAKE_AUTH.token
-      });
-      expect(services).toEqual([
-        {serviceName: 'cloudfunctions.googleapis.com', enabled: false},
-        {serviceName: 'cloudscheduler.googleapis.com', enabled: false},
-        {serviceName: 'ml.googleapis.com', enabled: false},
-        {serviceName: 'storage-api.googleapis.com', enabled: false}
-      ]);
-    });
-
-    it('Gets service statuses with some enabled', async () => {
-      gapiRequestMock.mockResolvedValue({
-        result: {
-          services: [
-            {serviceName: 'ml.googleapis.com'},
-            {serviceName: 'cloudfunctions.googleapis.com'},
-          ]
+    it('Gets project state with ready status', async () => {
+      gapiRequestMock.mockImplementation((args: {path: string}) => {
+        if (args.path.indexOf('servicemanagement') >= 0) {
+          return {
+            result: {
+              services: [
+                {serviceName: 'compute.googleapis.com'},
+                {serviceName: 'storage-api.googleapis.com'},
+                {serviceName: 'cloudscheduler.googleapis.com'},
+                {serviceName: 'ml.googleapis.com'},
+                {serviceName: 'cloudfunctions.googleapis.com'},
+              ]
+            }
+          };
+        } else if (args.path.indexOf('cloudfunctions') >= 0) {
+          return {
+            result: {
+              functions: [{
+                name: 'submitScheduledNotebook',
+                status: 'ACTIVE',
+                httpsTrigger: {
+                  url: 'https://mycloudfunctiourl.goog',
+                }
+              }]
+            }
+          };
+        } else if (args.path.indexOf('storage') >= 0) {
+          return {result: {items: ['bucket1']}};
         }
       });
-      const services = await gcpService.getServiceStatuses();
+      const projectState = await gcpService.getProjectState();
 
       expect(gapi.client.setToken).toBeCalledWith({
         access_token: FAKE_AUTH.token
       });
-      expect(services).toEqual([
-        {serviceName: 'cloudfunctions.googleapis.com', enabled: true},
-        {serviceName: 'cloudscheduler.googleapis.com', enabled: false},
-        {serviceName: 'ml.googleapis.com', enabled: true},
-        {serviceName: 'storage-api.googleapis.com', enabled: false}
-      ]);
+      expect(projectState).toEqual({
+        allServicesEnabled: true,
+        hasCloudFunction: true,
+        hasGcsBucket: true,
+        projectId: 'test-project',
+        ready: true,
+        serviceStatuses: [
+          {
+            enabled: true,
+            service: {
+              name: 'Compute Engine API',
+              endpoint: 'compute.googleapis.com',
+              documentation: 'https://cloud.google.com/compute/',
+            }
+          },
+          {
+            service: {
+              name: 'Cloud Storage API',
+              endpoint: 'storage-api.googleapis.com',
+              documentation: 'https://cloud.google.com/storage/',
+            },
+            enabled: true
+          },
+          {
+            service: {
+              name: 'Cloud Scheduler API',
+              endpoint: 'cloudscheduler.googleapis.com',
+              documentation: 'https://cloud.google.com/scheduler',
+            },
+            enabled: true
+          },
+          {
+            service: {
+              name: 'AI Platform Training API',
+              endpoint: 'ml.googleapis.com',
+              documentation: 'https://cloud.google.com/ai-platform/',
+            },
+            enabled: true
+          },
+          {
+            service: {
+              name: 'Cloud Functions API',
+              endpoint: 'cloudfunctions.googleapis.com',
+              documentation: 'https://cloud.google.com/functions/',
+            },
+            enabled: true
+          }
+        ]
+      });
+      expect(gapi.client.request).toBeCalledTimes(3);
     });
 
-    it('Throws error when service statuses cannot be retrieved', async () => {
-      const err = {body: 'Bad request', status: 400};
-      gapiRequestMock.mockRejectedValue(err);
+    it('Gets project state with disabled APIs', async () => {
+      gapiRequestMock.mockResolvedValue({result: {services: []}});
+      const projectState = await gcpService.getProjectState();
 
-      expect.assertions(2);
-      try {
-        await gcpService.getServiceStatuses();
-      } catch (received) {
-        expect(received).toEqual(err);
-      }
       expect(gapi.client.setToken).toBeCalledWith({
         access_token: FAKE_AUTH.token
       });
+      expect(projectState).toEqual({
+        allServicesEnabled: false,
+        hasCloudFunction: false,
+        hasGcsBucket: false,
+        projectId: 'test-project',
+        ready: false,
+        serviceStatuses: [
+          {
+            enabled: false,
+            service: {
+              name: 'Compute Engine API',
+              endpoint: 'compute.googleapis.com',
+              documentation: 'https://cloud.google.com/compute/',
+            }
+          },
+          {
+            service: {
+              name: 'Cloud Storage API',
+              endpoint: 'storage-api.googleapis.com',
+              documentation: 'https://cloud.google.com/storage/',
+            },
+            enabled: false
+          },
+          {
+            service: {
+              name: 'Cloud Scheduler API',
+              endpoint: 'cloudscheduler.googleapis.com',
+              documentation: 'https://cloud.google.com/scheduler',
+            },
+            enabled: false
+          },
+          {
+            service: {
+              name: 'AI Platform Training API',
+              endpoint: 'ml.googleapis.com',
+              documentation: 'https://cloud.google.com/ai-platform/',
+            },
+            enabled: false
+          },
+          {
+            service: {
+              name: 'Cloud Functions API',
+              endpoint: 'cloudfunctions.googleapis.com',
+              documentation: 'https://cloud.google.com/functions/',
+            },
+            enabled: false
+          }
+        ]
+      });
+      expect(gapi.client.request).toBeCalledTimes(1);
     });
+
+    it('Gets project state missing Bucket and pending Cloud Function',
+       async () => {
+         gapiRequestMock.mockImplementation((args: {path: string}) => {
+           if (args.path.indexOf('servicemanagement') >= 0) {
+             return {
+               result: {
+                 services: [
+                   {serviceName: 'compute.googleapis.com'},
+                   {serviceName: 'storage-api.googleapis.com'},
+                   {serviceName: 'cloudscheduler.googleapis.com'},
+                   {serviceName: 'ml.googleapis.com'},
+                   {serviceName: 'cloudfunctions.googleapis.com'},
+                 ]
+               }
+             };
+           } else if (args.path.indexOf('cloudfunctions') >= 0) {
+             return {
+               result: {
+                 functions: [{
+                   name: 'submitScheduledNotebook',
+                   status: 'CREATING',
+                   httpsTrigger: {
+                     url: 'https://mycloudfunctiourl.goog',
+                   }
+                 }]
+               }
+             };
+           } else if (args.path.indexOf('storage') >= 0) {
+             return {result: {}};
+           }
+         });
+         const projectState = await gcpService.getProjectState();
+
+         expect(gapi.client.setToken).toBeCalledWith({
+           access_token: FAKE_AUTH.token
+         });
+         expect(projectState).toEqual({
+           allServicesEnabled: true,
+           hasCloudFunction: false,
+           hasGcsBucket: false,
+           projectId: 'test-project',
+           ready: false,
+           serviceStatuses: [
+             {
+               enabled: true,
+               service: {
+                 name: 'Compute Engine API',
+                 endpoint: 'compute.googleapis.com',
+                 documentation: 'https://cloud.google.com/compute/',
+               }
+             },
+             {
+               service: {
+                 name: 'Cloud Storage API',
+                 endpoint: 'storage-api.googleapis.com',
+                 documentation: 'https://cloud.google.com/storage/',
+               },
+               enabled: true
+             },
+             {
+               service: {
+                 name: 'Cloud Scheduler API',
+                 endpoint: 'cloudscheduler.googleapis.com',
+                 documentation: 'https://cloud.google.com/scheduler',
+               },
+               enabled: true
+             },
+             {
+               service: {
+                 name: 'AI Platform Training API',
+                 endpoint: 'ml.googleapis.com',
+                 documentation: 'https://cloud.google.com/ai-platform/',
+               },
+               enabled: true
+             },
+             {
+               service: {
+                 name: 'Cloud Functions API',
+                 endpoint: 'cloudfunctions.googleapis.com',
+                 documentation: 'https://cloud.google.com/functions/',
+               },
+               enabled: true
+             }
+           ]
+         });
+         expect(gapi.client.request).toBeCalledTimes(3);
+       });
 
     it('Enables services', async () => {
       let operationNo = 1;
@@ -96,8 +298,10 @@ describe('GcpService', () => {
             }
           });
 
+      const stopTimers = pollerHelper();
       const operations =
           await gcpService.enableServices(['service1', 'service2']);
+      stopTimers();
 
       expect(gapi.client.request).toBeCalledWith({
         path:
@@ -139,12 +343,14 @@ describe('GcpService', () => {
             }
           });
 
+      const stopTimers = pollerHelper();
       expect.assertions(5);
       try {
         await gcpService.enableServices(['service1', 'service2']);
       } catch (err) {
         expect(err.error).toEqual('operation2 failed');
       }
+      stopTimers();
 
       expect(gapi.client.request).toBeCalledWith({
         path:
@@ -261,7 +467,9 @@ describe('GcpService', () => {
           .mockResolvedValueOnce(
               {result: {done: true, response: createdFunction}});
 
+      const stopTimers = pollerHelper();
       const cloudFunction = await gcpService.createCloudFunction('us-central1');
+      stopTimers();
       expect(cloudFunction).toEqual(createdFunction);
 
       expect(gapi.client.request).toBeCalledWith({
@@ -293,12 +501,14 @@ describe('GcpService', () => {
           .mockResolvedValueOnce(
               {result: {done: true, error: 'Could not create Function'}});
 
+      const stopTimers = pollerHelper();
       expect.assertions(4);
       try {
         await gcpService.createCloudFunction('us-central1');
       } catch (err) {
         expect(err).toEqual({done: true, error: 'Could not create Function'});
       }
+      stopTimers();
 
       expect(gapi.client.request).toBeCalledWith({
         path:

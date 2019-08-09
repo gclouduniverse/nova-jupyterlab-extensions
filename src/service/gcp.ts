@@ -1,8 +1,13 @@
+const ACTIVE = 'ACTIVE';
+const CLOUD_FUNCTION_ARCHIVE = 'gs://prodonjs-kubeflow-dev/notebooks_cf.zip';
+const CLOUD_FUNCTION_NAME = 'submitScheduledNotebook';
 const GAPI_URL = 'https://apis.google.com/js/api.js';
+const POLL_INTERVAL = 5000;
 
-interface ServiceStatus {
-  serviceName: string;
-  enabled: boolean;
+interface Service {
+  endpoint: string;
+  name: string;
+  documentation: string;
 }
 
 interface AuthResponse {
@@ -10,7 +15,60 @@ interface AuthResponse {
   project: string;
 }
 
+interface Function {
+  name: string;
+  httpsTrigger: {url: string};
+  status: string;
+}
+
+interface ListFunctionsResponse {
+  functions?: Function[];
+}
+/** Project initialization state. */
+export interface ProjectState {
+  allServicesEnabled: boolean;
+  hasCloudFunction: boolean;
+  hasGcsBucket: boolean;
+  projectId: string;
+  ready: boolean;
+  serviceStatuses: ServiceStatus[];
+}
+
+interface ServiceStatus {
+  service: Service;
+  enabled: boolean;
+}
+
 type Operation = gapi.client.servicemanagement.Operation;
+
+// Static list of required GCP services
+const REQUIRED_SERVICES: ReadonlyArray<Service> = [
+  {
+    name: 'Compute Engine API',
+    endpoint: 'compute.googleapis.com',
+    documentation: 'https://cloud.google.com/compute/',
+  },
+  {
+    name: 'Cloud Storage API',
+    endpoint: 'storage-api.googleapis.com',
+    documentation: 'https://cloud.google.com/storage/',
+  },
+  {
+    name: 'Cloud Scheduler API',
+    endpoint: 'cloudscheduler.googleapis.com',
+    documentation: 'https://cloud.google.com/scheduler',
+  },
+  {
+    name: 'AI Platform Training API',
+    endpoint: 'ml.googleapis.com',
+    documentation: 'https://cloud.google.com/ai-platform/',
+  },
+  {
+    name: 'Cloud Functions API',
+    endpoint: 'cloudfunctions.googleapis.com',
+    documentation: 'https://cloud.google.com/functions/',
+  }
+];
 
 /** Default provider function to resolve when the Google API service is ready */
 export function defaultGapiProvider() {
@@ -37,34 +95,34 @@ export class GcpService {
       'https://servicemanagement.googleapis.com/v1';
   private static readonly CLOUD_FUNCTIONS =
       'https://cloudfunctions.googleapis.com/v1';
-  private static readonly REQUIRED_SERVICES = [
-    'cloudfunctions.googleapis.com',
-    'cloudscheduler.googleapis.com',
-    'ml.googleapis.com',
-    'storage-api.googleapis.com',
-  ];
 
   constructor(private gapiPromise: Promise<void>) {}
 
-  /** Returns the status of the required services. */
-  async getServiceStatuses(): Promise<ServiceStatus[]> {
+  async getProjectState(): Promise<ProjectState> {
     try {
-      const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
-      gapi.client.setToken({access_token: auth.token});
-      const response =
-          await gapi.client
-              .request<gapi.client.servicemanagement.ListServicesResponse>({
-                path: `${GcpService.SERVICE_MANAGER}/services`,
-                params: {consumerId: `project:${auth.project}`, pageSize: 100}
-              });
-      const enabledServices =
-          new Set(response.result.services.map((m) => m.serviceName));
-      return GcpService.REQUIRED_SERVICES.map((s) => ({
-                                                serviceName: s,
-                                                enabled: enabledServices.has(s),
-                                              }));
+      const auth = await this._getAuth();
+      const state: ProjectState = {
+        allServicesEnabled: false,
+        hasCloudFunction: false,
+        hasGcsBucket: false,
+        projectId: auth.project,
+        ready: false,
+        serviceStatuses: [],
+      };
+
+      state.serviceStatuses = await this.getServiceStatuses(auth);
+      state.allServicesEnabled = state.serviceStatuses.every((s) => s.enabled);
+      if (state.allServicesEnabled) {
+        const [hasCloudFunction, hasGcsBucket] = await Promise.all(
+            [this.hasCloudFunction(auth), this.hasGcsBucket(auth)]);
+        state.hasCloudFunction = hasCloudFunction;
+        state.hasGcsBucket = hasGcsBucket;
+        state.ready = state.allServicesEnabled && state.hasCloudFunction &&
+            state.hasGcsBucket;
+      }
+      return state;
     } catch (err) {
-      console.error('Unable to return GCP services');
+      console.log('Unable to determine project status');
       throw err;
     }
   }
@@ -146,7 +204,7 @@ export class GcpService {
   /**
    * Creates the necessary Cloud Function(s) in the project.
    */
-  async createCloudFunction(regionName: string): Promise<Record<string, any>> {
+  async createCloudFunction(regionName: string): Promise<Function> {
     try {
       const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
       gapi.client.setToken({access_token: auth.token});
@@ -156,19 +214,84 @@ export class GcpService {
         path: `${GcpService.CLOUD_FUNCTIONS}/${locationPrefix}`,
         method: 'POST',
         body: {
-          name: `${locationPrefix}/submitScheduledNotebook`,
+          name: `${locationPrefix}/${CLOUD_FUNCTION_NAME}`,
           description: 'Submits a Notebook Job on AI Platform',
-          entryPoint: 'submitScheduledNotebook',
+          entryPoint: CLOUD_FUNCTION_NAME,
           runtime: 'nodejs10',
-          sourceArchiveUrl: 'gs://prodonjs-kubeflow-dev/notebooks_cf.zip',
+          sourceArchiveUrl: CLOUD_FUNCTION_ARCHIVE,
           httpsTrigger: {}  // Needed to indicate http function
         }
       });
       const finishedOperation = await this._pollOperation(
           `${GcpService.CLOUD_FUNCTIONS}/${pendingOperation.result.name}`);
-      return finishedOperation.response;
+      return finishedOperation.response as Function;
     } catch (err) {
       console.error('Unable to Create Cloud Function');
+      throw err;
+    }
+  }
+
+  /** Returns the status of the required services. */
+  private async getServiceStatuses(auth: AuthResponse):
+      Promise<ServiceStatus[]> {
+    try {
+      await this.gapiPromise;
+      gapi.client.setToken({access_token: auth.token});
+      const response =
+          await gapi.client
+              .request<gapi.client.servicemanagement.ListServicesResponse>({
+                path: `${GcpService.SERVICE_MANAGER}/services`,
+                params: {consumerId: `project:${auth.project}`, pageSize: 100}
+              });
+      const enabledServices =
+          new Set(response.result.services.map((m) => m.serviceName));
+      return REQUIRED_SERVICES.map(
+          (service) => ({
+            service,
+            enabled: enabledServices.has(service.endpoint),
+          }));
+    } catch (err) {
+      console.error('Unable to return GCP services');
+      throw err;
+    }
+  }
+
+  /** Returns true if the project has at least one GCS bucket present. */
+  private async hasGcsBucket(auth: AuthResponse): Promise<boolean> {
+    try {
+      await this.gapiPromise;
+      gapi.client.setToken({access_token: auth.token});
+      const response = await gapi.client.request<gapi.client.storage.Buckets>({
+        path: '/storage/v1/b',
+        params: {project: auth.project},
+      });
+      return !!response.result.items && response.result.items.length > 0;
+    } catch (err) {
+      console.error('Unable to list GCS Buckets');
+      throw err;
+    }
+  }
+
+  /**
+   * Returns true if the project has a function deployed with the suffix
+   * CLOUD_FUNCTION_NAME.
+   */
+  private async hasCloudFunction(auth: AuthResponse): Promise<boolean> {
+    try {
+      await this.gapiPromise;
+      gapi.client.setToken({access_token: auth.token});
+      const response = await gapi.client.request<ListFunctionsResponse>({
+        path: `${GcpService.CLOUD_FUNCTIONS}/projects/${
+            auth.project}/locations/-/functions`,
+      });
+      if (!(response.result.functions && response.result.functions.length)) {
+        return false;
+      } else {
+        return !!response.result.functions.find(
+            (f) => f.name.endsWith(CLOUD_FUNCTION_NAME) && f.status === ACTIVE);
+      }
+    } catch (err) {
+      console.error('Unable to list Cloud Functions');
       throw err;
     }
   }
@@ -184,7 +307,8 @@ export class GcpService {
           const {result} = response;
           if (!result.done) {
             console.info(
-                `Operation ${path} still running, polling again in 1s`);
+                `Operation ${path} is still running, polling again in ${
+                    POLL_INTERVAL / 1000}s`);
             return;
           }
 
@@ -200,7 +324,7 @@ export class GcpService {
           clearInterval(interval);
           reject(err);
         }
-      }, 1000);
+      }, POLL_INTERVAL);
     });
   }
 
