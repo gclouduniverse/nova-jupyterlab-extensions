@@ -33,7 +33,7 @@ export class MainWidget extends React.Component<Props, State> {
     this._setProjectState = this._setProjectState.bind(this);
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this._setProjectState();
   }
 
