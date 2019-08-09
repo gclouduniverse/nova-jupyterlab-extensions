@@ -42,7 +42,7 @@ interface ServiceStatus {
 type Operation = gapi.client.servicemanagement.Operation;
 
 // Static list of required GCP services
-export const REQUIRED_SERVICES: ReadonlyArray<Service> = [
+const REQUIRED_SERVICES: ReadonlyArray<Service> = [
   {
     name: 'Compute Engine API',
     endpoint: 'compute.googleapis.com',

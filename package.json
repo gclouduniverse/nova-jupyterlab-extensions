@@ -30,6 +30,7 @@
     "prepare": "npm run clean && npm run build",
     "start": "concurrently -k -p \"[{name}]\" -n \"Typescript,JupyterLab\" -c \"green.bold,yellow.bold\" \"npm run watch\" \"jupyter lab --watch\"",
     "test": "jest --coverage",
+    "test-watch": "jest --watch",
     "watch": "tsc -w"
   },
   "dependencies": {
