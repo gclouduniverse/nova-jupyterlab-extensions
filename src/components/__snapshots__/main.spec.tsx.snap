@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MainWidget Renders with Initializer 1`] = `
+<div
+  className="jp-MainWidget"
+>
+  <main
+    className="jp-MainWidget-main"
+  >
+    <p>
+      Validating project configuration...
+    </p>
+  </main>
+</div>
+`;
+
+exports[`MainWidget Renders with Initializer 2`] = `
+<div
+  className="jp-MainWidget"
+>
+  <main
+    className="jp-MainWidget-main"
+  >
+    <Initializer
+      gcpService={
+        Object {
+          "getProjectState": [MockFunction] {
+            "calls": Array [
+              Array [],
+            ],
+            "results": Array [
+              Object {
+                "type": "return",
+                "value": Promise {},
+              },
+            ],
+          },
+        }
+      }
+      onStateChange={[Function]}
+      projectState={
+        Object {
+          "allServicesEnabled": false,
+          "hasCloudFunction": false,
+          "hasGcsBucket": false,
+          "projectId": "test-project",
+          "ready": false,
+          "serviceStatuses": Array [
+            Object {
+              "enabled": false,
+              "service": Object {
+                "documentation": "https://cloud.google.com/compute/",
+                "endpoint": "compute.googleapis.com",
+                "name": "Compute Engine API",
+              },
+            },
+          ],
+        }
+      }
+    />
+  </main>
+</div>
+`;
+
+exports[`MainWidget Renders with Scheduler 1`] = `
+<div
+  className="jp-MainWidget"
+>
+  <main
+    className="jp-MainWidget-main"
+  >
+    <p>
+      Validating project configuration...
+    </p>
+  </main>
+</div>
+`;
+
+exports[`MainWidget Renders with Scheduler 2`] = `
+<div
+  className="jp-MainWidget"
+>
+  <main
+    className="jp-MainWidget-main"
+  >
+    <p>
+      PLACEHOLDER FOR SCHEDULER
+    </p>
+  </main>
+</div>
+`;
