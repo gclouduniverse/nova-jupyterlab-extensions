@@ -28,57 +28,58 @@ describe('GcpService', () => {
   });
 
   describe('API Services', () => {
-    it('Gets service statuses with none enabled', async () => {
-      gapiRequestMock.mockResolvedValue({result: {services: []}});
-      const services = await gcpService.getServiceStatuses();
+    //   it('Gets service statuses with none enabled', async () => {
+    //     gapiRequestMock.mockResolvedValue({result: {services: []}});
+    //     const services = await gcpService.getServiceStatuses();
 
-      expect(gapi.client.setToken).toBeCalledWith({
-        access_token: FAKE_AUTH.token
-      });
-      expect(services).toEqual([
-        {serviceName: 'cloudfunctions.googleapis.com', enabled: false},
-        {serviceName: 'cloudscheduler.googleapis.com', enabled: false},
-        {serviceName: 'ml.googleapis.com', enabled: false},
-        {serviceName: 'storage-api.googleapis.com', enabled: false}
-      ]);
-    });
+    //     expect(gapi.client.setToken).toBeCalledWith({
+    //       access_token: FAKE_AUTH.token
+    //     });
+    //     expect(services).toEqual([
+    //       {serviceName: 'cloudfunctions.googleapis.com', enabled: false},
+    //       {serviceName: 'cloudscheduler.googleapis.com', enabled: false},
+    //       {serviceName: 'ml.googleapis.com', enabled: false},
+    //       {serviceName: 'storage-api.googleapis.com', enabled: false}
+    //     ]);
+    //   });
 
-    it('Gets service statuses with some enabled', async () => {
-      gapiRequestMock.mockResolvedValue({
-        result: {
-          services: [
-            {serviceName: 'ml.googleapis.com'},
-            {serviceName: 'cloudfunctions.googleapis.com'},
-          ]
-        }
-      });
-      const services = await gcpService.getServiceStatuses();
+    //   it('Gets service statuses with some enabled', async () => {
+    //     gapiRequestMock.mockResolvedValue({
+    //       result: {
+    //         services: [
+    //           {serviceName: 'ml.googleapis.com'},
+    //           {serviceName: 'cloudfunctions.googleapis.com'},
+    //         ]
+    //       }
+    //     });
+    //     const services = await gcpService.getServiceStatuses();
 
-      expect(gapi.client.setToken).toBeCalledWith({
-        access_token: FAKE_AUTH.token
-      });
-      expect(services).toEqual([
-        {serviceName: 'cloudfunctions.googleapis.com', enabled: true},
-        {serviceName: 'cloudscheduler.googleapis.com', enabled: false},
-        {serviceName: 'ml.googleapis.com', enabled: true},
-        {serviceName: 'storage-api.googleapis.com', enabled: false}
-      ]);
-    });
+    //     expect(gapi.client.setToken).toBeCalledWith({
+    //       access_token: FAKE_AUTH.token
+    //     });
+    //     expect(services).toEqual([
+    //       {serviceName: 'cloudfunctions.googleapis.com', enabled: true},
+    //       {serviceName: 'cloudscheduler.googleapis.com', enabled: false},
+    //       {serviceName: 'ml.googleapis.com', enabled: true},
+    //       {serviceName: 'storage-api.googleapis.com', enabled: false}
+    //     ]);
+    //   });
 
-    it('Throws error when service statuses cannot be retrieved', async () => {
-      const err = {body: 'Bad request', status: 400};
-      gapiRequestMock.mockRejectedValue(err);
+    //   it('Throws error when service statuses cannot be retrieved', async ()
+    //   => {
+    //     const err = {body: 'Bad request', status: 400};
+    //     gapiRequestMock.mockRejectedValue(err);
 
-      expect.assertions(2);
-      try {
-        await gcpService.getServiceStatuses();
-      } catch (received) {
-        expect(received).toEqual(err);
-      }
-      expect(gapi.client.setToken).toBeCalledWith({
-        access_token: FAKE_AUTH.token
-      });
-    });
+    //     expect.assertions(2);
+    //     try {
+    //       await gcpService.getServiceStatuses();
+    //     } catch (received) {
+    //       expect(received).toEqual(err);
+    //     }
+    //     expect(gapi.client.setToken).toBeCalledWith({
+    //       access_token: FAKE_AUTH.token
+    //     });
+    //   });
 
     it('Enables services', async () => {
       let operationNo = 1;
