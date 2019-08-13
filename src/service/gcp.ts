@@ -24,6 +24,41 @@ interface Function {
 interface ListFunctionsResponse {
   functions?: Function[];
 }
+
+interface ServiceStatus {
+  service: Service;
+  enabled: boolean;
+}
+
+/**
+ * Scale tier values for AI Platform Jobs
+ * https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs#scaletier
+ */
+export enum ScaleTier {
+  BASIC = 'BASIC',
+  STANDARD_1 = 'STANDARD_1',
+  PREMIUM_1 = 'PREMIUM_1',
+  BASIC_GPU = 'BASIC_GPU',
+  BASIC_TPU = 'BASIC_TPU',
+  CUSTOM = 'CUSTOM',
+}
+
+/**
+ * Cloud Scheduler Job
+ * https://cloud.google.com/scheduler/docs/reference/rest/v1/projects.locations.jobs#Job
+ */
+export interface CloudSchedulerJob {
+  name: string;
+  description: string;
+  schedule: string;
+  timeZone: string;
+  httpTarget: {
+    body: string; headers: {[name: string]: string}; httpMethod: string;
+    uri: string;
+    oidcToken: {serviceAccountEmail: string;}
+  };
+}
+
 /** Project initialization state. */
 export interface ProjectState {
   allServicesEnabled: boolean;
@@ -34,9 +69,14 @@ export interface ProjectState {
   serviceStatuses: ServiceStatus[];
 }
 
-interface ServiceStatus {
-  service: Service;
-  enabled: boolean;
+/** Message type describing an AI Platform training Job */
+export interface RunNotebookRequest {
+  imageUri: string;
+  inputNotebookGcsPath: string;
+  jobId: string;
+  outputNotebookGcsPath: string;
+  scaleTier: ScaleTier;
+  region: string;
 }
 
 type Operation = gapi.client.servicemanagement.Operation;
@@ -91,10 +131,13 @@ export function defaultGapiProvider() {
 export class GcpService {
   private static readonly POST = 'POST';
   private static readonly AUTH_PATH = '/gcp/v1/auth';
-  private static readonly SERVICE_MANAGER =
-      'https://servicemanagement.googleapis.com/v1';
+  private static readonly AI_PLATFORM = 'https://ml.googleapis.com/v1';
   private static readonly CLOUD_FUNCTIONS =
       'https://cloudfunctions.googleapis.com/v1';
+  private static readonly CLOUD_SCHEDULER =
+      'https://cloudscheduler.googleapis.com/v1';
+  private static readonly SERVICE_MANAGER =
+      'https://servicemanagement.googleapis.com/v1';
 
   constructor(private gapiPromise: Promise<void>) {}
 
@@ -110,11 +153,11 @@ export class GcpService {
         serviceStatuses: [],
       };
 
-      state.serviceStatuses = await this.getServiceStatuses(auth);
+      state.serviceStatuses = await this._getServiceStatuses(auth);
       state.allServicesEnabled = state.serviceStatuses.every((s) => s.enabled);
       if (state.allServicesEnabled) {
         const [hasCloudFunction, hasGcsBucket] = await Promise.all(
-            [this.hasCloudFunction(auth), this.hasGcsBucket(auth)]);
+            [this._hasCloudFunction(auth), this._hasGcsBucket(auth)]);
         state.hasCloudFunction = hasCloudFunction;
         state.hasGcsBucket = hasGcsBucket;
         state.ready = state.allServicesEnabled && state.hasCloudFunction &&
@@ -231,8 +274,78 @@ export class GcpService {
     }
   }
 
+  /**
+   * Submits a Notebook for recurring scheduled execution on AI Platform via a
+   * new Cloud Scheduler job.
+   * @param request
+   * @param cloudFunctionUrl
+   * @param serviceAccountEmail
+   */
+  async scheduleNotebook(
+      request: RunNotebookRequest, cloudFunctionUrl: string,
+      serviceAccountEmail: string,
+      schedule: string): Promise<CloudSchedulerJob> {
+    let timeZone = 'America/New_York';
+    try {
+      timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (err) {
+    }
+
+    try {
+      const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
+      gapi.client.setToken({access_token: auth.token});
+      const locationPrefix =
+          `projects/${auth.project}/locations/${request.region}/jobs`;
+      const requestBody: CloudSchedulerJob = {
+        name: `${locationPrefix}/${request.jobId}`,
+        description: 'Scheduled Notebook',
+        schedule,
+        timeZone,
+        httpTarget: {
+          body: btoa(JSON.stringify(this._buildAiPlatformJobRequest(request))),
+          headers: {'Content-Type': 'application/json'},
+          httpMethod: 'POST',
+          oidcToken: {serviceAccountEmail},
+          uri: cloudFunctionUrl,
+        }
+      };
+      const response = await gapi.client.request<CloudSchedulerJob>({
+        path: `${GcpService.CLOUD_SCHEDULER}/${locationPrefix}`,
+        method: 'POST',
+        body: requestBody
+      });
+      return response.result;
+    } catch (err) {
+      console.error('Unable to create Cloud Scheduler job');
+      throw err;
+    }
+  }
+
+  /**
+   * Submits a Notebook for immediate execution on AI Platform.
+   * @param cloudFunctionUrl
+   * @param request
+   */
+  async runNotebook(request: RunNotebookRequest):
+      Promise<gapi.client.ml.GoogleCloudMlV1__Job> {
+    try {
+      const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
+      gapi.client.setToken({access_token: auth.token});
+      const response =
+          await gapi.client.request<gapi.client.ml.GoogleCloudMlV1__Job>({
+            path: `${GcpService.AI_PLATFORM}/projects/${auth.project}/jobs`,
+            method: 'POST',
+            body: this._buildAiPlatformJobRequest(request)
+          });
+      return response.result;
+    } catch (err) {
+      console.error('Unable to submit Notebook to AI Platform');
+      throw err;
+    }
+  }
+
   /** Returns the status of the required services. */
-  private async getServiceStatuses(auth: AuthResponse):
+  private async _getServiceStatuses(auth: AuthResponse):
       Promise<ServiceStatus[]> {
     try {
       await this.gapiPromise;
@@ -257,7 +370,7 @@ export class GcpService {
   }
 
   /** Returns true if the project has at least one GCS bucket present. */
-  private async hasGcsBucket(auth: AuthResponse): Promise<boolean> {
+  private async _hasGcsBucket(auth: AuthResponse): Promise<boolean> {
     try {
       await this.gapiPromise;
       gapi.client.setToken({access_token: auth.token});
@@ -276,7 +389,7 @@ export class GcpService {
    * Returns true if the project has a function deployed with the suffix
    * CLOUD_FUNCTION_NAME.
    */
-  private async hasCloudFunction(auth: AuthResponse): Promise<boolean> {
+  private async _hasCloudFunction(auth: AuthResponse): Promise<boolean> {
     try {
       await this.gapiPromise;
       gapi.client.setToken({access_token: auth.token});
@@ -336,5 +449,25 @@ export class GcpService {
       console.error('Unable to obtain GCP Authorization Token');
       throw err;
     }
+  }
+
+  private _buildAiPlatformJobRequest(request: RunNotebookRequest):
+      gapi.client.ml.GoogleCloudMlV1__Job {
+    return {
+      jobId: request.jobId,
+      labels: {job_type: 'jupyterlab_scheduled_notebook'},
+      trainingInput: {
+        args: [
+          'nbexecutor',
+          '--input-notebook',
+          request.inputNotebookGcsPath,
+          '--output-notebook',
+          request.outputNotebookGcsPath,
+        ],
+        masterConfig: {imageUri: request.imageUri},
+        region: request.region,
+        scaleTier: request.scaleTier,
+      }
+    } as gapi.client.ml.GoogleCloudMlV1__Job;
   }
 }
