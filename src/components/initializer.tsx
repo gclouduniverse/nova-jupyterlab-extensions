@@ -30,7 +30,8 @@ export class Initializer extends React.Component<Props, State> {
 
   render() {
     const {projectState} = this.props;
-    const {enablingApis, creatingGcsBucket, creatingCloudFunction} = this.state;
+    const {enablingApis, error, creatingGcsBucket,
+      creatingCloudFunction} = this.state;
     const operationsPending = enablingApis || creatingGcsBucket ||
       creatingCloudFunction;
     return (
@@ -69,6 +70,7 @@ export class Initializer extends React.Component<Props, State> {
               onClick={this._onInitialize}>Initialize</button>
           }
         </div>
+        {error && <p className='error'>{error}</p>}
         {operationsPending &&
           <div>
             {enablingApis && <p>Enabling GCP API(s)...</p>}
@@ -94,23 +96,28 @@ export class Initializer extends React.Component<Props, State> {
       .filter((s) => !s.enabled)
       .map((s) => s.service.endpoint);
     // Services must be enabled before GCS Bucket and Cloud Function creation
+    let error: string;
     if (toEnable.length) {
       this.setState({enablingApis: true});
       try {
         await gcpService.enableServices(toEnable);
       } catch (err) {
-        this.setState({error: 'Unable to enable necessary GCP APIs'});
+        error = 'Unable to enable necessary GCP APIs';
       }
       this.setState({enablingApis: false});
       this.props.onStateChange();
     }
 
-    // Cloud Function and GCS Bucket creation can happen concurrently
-    if (!projectState.hasCloudFunction) {
-      this._createCloudFunction();
-    }
-    if (!projectState.hasGcsBucket) {
-      this._createGcsBucket();
+    if (error) {
+      this.setState({error});
+    } else {
+      // Cloud Function and GCS Bucket creation can happen concurrently
+      if (!projectState.hasCloudFunction) {
+        this._createCloudFunction();
+      }
+      if (!projectState.hasGcsBucket) {
+        this._createGcsBucket();
+      }
     }
   }
 

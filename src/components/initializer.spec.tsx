@@ -109,4 +109,104 @@ describe('Initializer', () => {
     expect(mockCreateBucket).toHaveBeenCalledWith('test-project');
     expect(mockOnStateChange).toBeCalledTimes(3);
   });
+
+  it('Fails to enable all services', async () => {
+    const error = {error: 'Cannot Enable Services'};
+    const enableServicesPromise = Promise.reject(error);
+    mockEnableServices.mockReturnValue(enableServicesPromise);
+    expect.assertions(8);
+
+    const initializer = shallow(<Initializer gcpService={mockGcpService}
+      onStateChange={mockOnStateChange} projectState={mockProjectState} />);
+    initializer.find('button').simulate('click');
+    expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(true);
+
+    try {
+      await enableServicesPromise;
+    }
+    catch (err) {
+      expect(err).toEqual(error);
+    }
+    expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(false);
+    expect(initializer.contains(
+      <p className='error'>Unable to enable necessary GCP APIs</p>)).toBe(true);
+
+    expect(mockEnableServices).toHaveBeenCalledWith([
+      'compute.googleapis.com',
+      'storage-api.googleapis.com',
+      'cloudscheduler.googleapis.com',
+      'ml.googleapis.com',
+      'cloudfunctions.googleapis.com'
+    ]);
+    expect(mockCreateCloudFunction).not.toHaveBeenCalled();
+    expect(mockCreateBucket).not.toHaveBeenCalled();
+    expect(mockOnStateChange).toBeCalledTimes(1);
+  });
+
+  it('Fails to create Cloud Function', async () => {
+    const error = {error: 'Cannot Create Cloud Function'};
+    const createBucketPromise = Promise.resolve(true);
+    const createCloudFunctionPromise = Promise.reject(error);
+    mockProjectState.allServicesEnabled = true;
+    mockProjectState.serviceStatuses.forEach((s) => s.enabled = true);
+    mockCreateBucket.mockReturnValue(createBucketPromise);
+    mockCreateCloudFunction.mockReturnValue(createCloudFunctionPromise);
+    expect.assertions(9);
+
+    const initializer = shallow(<Initializer gcpService={mockGcpService}
+      onStateChange={mockOnStateChange} projectState={mockProjectState} />);
+    initializer.find('button').simulate('click');
+    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>))
+      .toBe(true);
+    expect(initializer.contains(<p>Creating Cloud Function...</p>))
+      .toBe(true);
+
+    await createBucketPromise;
+    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>))
+      .toBe(false);
+    try {
+      await createCloudFunctionPromise;
+    }
+    catch (err) {
+      expect(err).toEqual(error);
+    }
+    expect(initializer.contains(
+      <p className='error'>Unable to create Cloud Function</p>)).toBe(true);
+
+    expect(mockEnableServices).not.toHaveBeenCalled();
+    expect(mockCreateCloudFunction).toHaveBeenCalledWith('us-central1');
+    expect(mockCreateBucket).toHaveBeenCalledWith('test-project');
+    expect(mockOnStateChange).toBeCalledTimes(2);
+  });
+
+  it('Fails to create GCS Bucket', async () => {
+    const error = {error: 'Cannot Create GCS Bucket'};
+    const createBucketPromise = Promise.reject(error);
+    mockProjectState.allServicesEnabled = true;
+    mockProjectState.serviceStatuses.forEach((s) => s.enabled = true);
+    mockProjectState.hasCloudFunction = true;
+    mockCreateBucket.mockReturnValue(createBucketPromise);
+    expect.assertions(8);
+
+    const initializer = shallow(<Initializer gcpService={mockGcpService}
+      onStateChange={mockOnStateChange} projectState={mockProjectState} />);
+    initializer.find('button').simulate('click');
+    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>))
+      .toBe(true);
+    try {
+      await createBucketPromise;
+    }
+    catch (err) {
+      expect(err).toEqual(error);
+    }
+    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>))
+      .toBe(false);
+    expect(initializer.contains(
+      <p className='error'>Unable to create GCS Bucket</p>)).toBe(true);
+
+    expect(mockEnableServices).not.toHaveBeenCalled();
+    expect(mockCreateCloudFunction).not.toHaveBeenCalled();
+    expect(mockCreateBucket).toHaveBeenCalledWith('test-project');
+    expect(mockOnStateChange).toBeCalledTimes(1);
+  });
 });
