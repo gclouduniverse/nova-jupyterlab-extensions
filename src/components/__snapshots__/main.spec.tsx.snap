@@ -83,9 +83,7 @@ exports[`MainWidget Renders with Scheduler 2`] = `
   <main
     className="jp-MainWidget-main"
   >
-    <p>
-      PLACEHOLDER FOR SCHEDULER
-    </p>
+    <SchedulerForm />
   </main>
 </div>
 `;

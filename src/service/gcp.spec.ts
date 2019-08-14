@@ -132,7 +132,23 @@ describe('GcpService', () => {
           }
         ]
       });
-      expect(gapi.client.request).toBeCalledTimes(3);
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        params: {
+          consumerId: 'project:test-project',
+          pageSize: 100,
+        },
+        path: 'https://servicemanagement.googleapis.com/v1/services'
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        params: {
+          project: 'test-project',
+        },
+        path: '/storage/v1/b'
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        path:
+            'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions'
+      });
     });
 
     it('Gets project state with disabled APIs', async () => {
@@ -191,10 +207,26 @@ describe('GcpService', () => {
           }
         ]
       });
-      expect(gapi.client.request).toBeCalledTimes(1);
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        params: {
+          consumerId: 'project:test-project',
+          pageSize: 100,
+        },
+        path: 'https://servicemanagement.googleapis.com/v1/services'
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        params: {
+          project: 'test-project',
+        },
+        path: '/storage/v1/b'
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        path:
+            'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions'
+      });
     });
 
-    it('Gets project state missing Bucket and pending Cloud Function',
+    it('Gets project state with Storage disabled and pending Cloud Function',
        async () => {
          gapiRequestMock.mockImplementation((args: {path: string}) => {
            if (args.path.indexOf('servicemanagement') >= 0) {
@@ -202,7 +234,6 @@ describe('GcpService', () => {
                result: {
                  services: [
                    {serviceName: 'compute.googleapis.com'},
-                   {serviceName: 'storage-api.googleapis.com'},
                    {serviceName: 'cloudscheduler.googleapis.com'},
                    {serviceName: 'ml.googleapis.com'},
                    {serviceName: 'cloudfunctions.googleapis.com'},
@@ -222,7 +253,7 @@ describe('GcpService', () => {
                }
              };
            } else if (args.path.indexOf('storage') >= 0) {
-             return {result: {}};
+             return Promise.reject({error: 'Storage is not available'});
            }
          });
          const projectState = await gcpService.getProjectState();
@@ -231,7 +262,7 @@ describe('GcpService', () => {
            access_token: FAKE_AUTH.token
          });
          expect(projectState).toEqual({
-           allServicesEnabled: true,
+           allServicesEnabled: false,
            hasCloudFunction: false,
            hasGcsBucket: false,
            projectId: 'test-project',
@@ -251,7 +282,7 @@ describe('GcpService', () => {
                  endpoint: 'storage-api.googleapis.com',
                  documentation: 'https://cloud.google.com/storage/',
                },
-               enabled: true
+               enabled: false
              },
              {
                service: {
@@ -279,7 +310,23 @@ describe('GcpService', () => {
              }
            ]
          });
-         expect(gapi.client.request).toBeCalledTimes(3);
+         expect(gapi.client.request).toHaveBeenCalledWith({
+           params: {
+             consumerId: 'project:test-project',
+             pageSize: 100,
+           },
+           path: 'https://servicemanagement.googleapis.com/v1/services'
+         });
+         expect(gapi.client.request).toHaveBeenCalledWith({
+           params: {
+             project: 'test-project',
+           },
+           path: '/storage/v1/b'
+         });
+         expect(gapi.client.request).toHaveBeenCalledWith({
+           path:
+               'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions'
+         });
        });
 
     it('Enables services', async () => {

@@ -30,6 +30,7 @@ interface ServiceStatus {
   enabled: boolean;
 }
 
+
 /**
  * Scale tier values for AI Platform Jobs
  * https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs#scaletier
@@ -155,14 +156,17 @@ export class GcpService {
 
       state.serviceStatuses = await this._getServiceStatuses(auth);
       state.allServicesEnabled = state.serviceStatuses.every((s) => s.enabled);
-      if (state.allServicesEnabled) {
-        const [hasCloudFunction, hasGcsBucket] = await Promise.all(
-            [this._hasCloudFunction(auth), this._hasGcsBucket(auth)]);
-        state.hasCloudFunction = hasCloudFunction;
-        state.hasGcsBucket = hasGcsBucket;
-        state.ready = state.allServicesEnabled && state.hasCloudFunction &&
-            state.hasGcsBucket;
-      }
+      const rejectHandler = () => false;
+      const [hasCloudFunction, hasGcsBucket] = await Promise.all([
+        this._hasCloudFunction(auth).catch(rejectHandler),
+        this._hasGcsBucket(auth).catch(rejectHandler)
+      ]);
+      state.hasCloudFunction = hasCloudFunction;
+      state.hasGcsBucket = hasGcsBucket;
+
+      state.ready = state.allServicesEnabled && state.hasCloudFunction &&
+          state.hasGcsBucket;
+
       return state;
     } catch (err) {
       console.log('Unable to determine project status');
