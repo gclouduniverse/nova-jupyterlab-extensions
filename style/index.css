@@ -26,6 +26,21 @@
 .jp-Scheduler-form-input-section {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  margin-bottom: 10px;
+}
+
+.jp-Scheduler-form-input-section-vertical {
+  flex-direction: column;
+}
+
+.jp-Scheduler-form-input-section-horizontal {
+  flex-direction: row;
+}
+
+.jp-Scheduler-form-two-input-section {
+  display: flex;
+  flex-direction: row;
 }
 
 .jp-Scheduler-form-input-label {
@@ -105,3 +120,9 @@
   font-weight: var(--jp-content-heading-font-weight, 500);
   padding: 4px 16px;
 }
+
+.jp-Scheduler-form-two-input-section {
+  display: flex;
+  flex-direction: row;
+}
+

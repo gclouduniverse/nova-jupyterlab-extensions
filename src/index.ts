@@ -1,7 +1,7 @@
 // Ensure styles are loaded by webpack
 import '../style/index.css';
 
-import {ILayoutRestorer, JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
+import {JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
 import {Dialog} from '@jupyterlab/apputils';
 import {ToolbarButton} from '@jupyterlab/apputils';
 import {DocumentRegistry} from '@jupyterlab/docregistry';
@@ -10,7 +10,6 @@ import {toArray} from '@phosphor/algorithm';
 import {DisposableDelegate, IDisposable} from '@phosphor/disposable';
 
 import {mainWidgetFactory} from './components/main';
-import {SchedulerForm} from './scheduler/schedulerForm';
 import {defaultGapiProvider, GcpService} from './service/gcp';
 
 /**
@@ -20,13 +19,6 @@ const buttonPlugin: JupyterLabPlugin<void> = {
   activate: activateButton,
   id: 'nova:button',
   autoStart: true,
-};
-
-const schedulerPlugin: JupyterLabPlugin<void> = {
-  activate: activateScheduler,
-  id: 'nova:scheduler',
-  autoStart: true,
-  requires: [ILayoutRestorer],
 };
 
 /**
@@ -71,24 +63,6 @@ function activateButton(app: JupyterLab) {
 }
 
 /**
- * Activate the extension.
- */
-function activateScheduler(app: JupyterLab, restorer: ILayoutRestorer): void {
-  console.log('JupyterLab nova scheduler extension is activated!');
-  const gcpService = new GcpService(defaultGapiProvider());
-  const sidePanel = new SchedulerForm(gcpService);
-  sidePanel.id = 'jp-nova-scheduler';
-  sidePanel.title.iconClass = 'jp-FolderIcon jp-SideBar-tabIcon';
-  sidePanel.title.caption = 'Scheduler';
-
-  if (restorer) {
-    restorer.add(sidePanel, 'scheduler');
-  }
-
-  app.shell.addToLeftArea(sidePanel, {rank: 450});
-}
-
-/**
  * Export the plugin as default.
  */
-export default [buttonPlugin, schedulerPlugin];
+export default [buttonPlugin];

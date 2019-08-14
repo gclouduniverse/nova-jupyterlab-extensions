@@ -5,6 +5,7 @@ import {GcpService, ProjectState} from '../service/gcp';
 import {ReactElementWidget} from '@jupyterlab/apputils';
 import {Initializer} from './initializer';
 import {INotebookModel} from '@jupyterlab/notebook';
+import {SchedulerForm} from './scheduler_form';
 
 /** Props definition including the GcpService for making backend calls. */
 export interface PropsWithGcpService {
@@ -42,7 +43,7 @@ export class MainWidget extends React.Component<Props, State> {
     return (<div className={CSS_BASE}>
       <main className={`${CSS_BASE}-main`}>
         {!projectState && <p>Validating project configuration...</p>}
-        {projectState && projectState.ready && <p>PLACEHOLDER FOR SCHEDULER</p>}
+        {projectState && projectState.ready && <SchedulerForm />}
         {projectState && !projectState.ready
           && <Initializer gcpService={this.props.gcpService}
             projectState={projectState}
