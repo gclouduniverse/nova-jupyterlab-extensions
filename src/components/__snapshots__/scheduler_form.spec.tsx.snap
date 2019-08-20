@@ -4,11 +4,7 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
 <div>
   <SchedulerDescription />
   <p
-    style={
-      Object {
-        "fontWeight": 500,
-      }
-    }
+    className="bold_f1wf24vo"
   >
     Notebook: 
     Test Notebook.ipynb
@@ -93,7 +89,9 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
       ]
     }
   />
-  <p>
+  <p
+    className="noTopMargin_felu21j"
+  >
     A scale is a predefined cluster specification.
     <LearnMoreLink
       href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
@@ -215,12 +213,19 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
       ]
     }
   />
-  <div>
+  <div
+    className="actionBar_fe1jzmp"
+  >
     <button
-      onClick={[Function]}
+      className="button_f1o5na2b"
     >
-      Submit
+      Cancel
     </button>
+    <SubmitButton
+      actionPending={false}
+      onClick={[Function]}
+      text="Submit"
+    />
   </div>
 </div>
 `;
@@ -229,11 +234,7 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
 <div>
   <SchedulerDescription />
   <p
-    style={
-      Object {
-        "fontWeight": 500,
-      }
-    }
+    className="bold_f1wf24vo"
   >
     Notebook: 
     Test Notebook.ipynb
@@ -318,7 +319,9 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
       ]
     }
   />
-  <p>
+  <p
+    className="noTopMargin_felu21j"
+  >
     A scale is a predefined cluster specification.
     <LearnMoreLink
       href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
@@ -384,12 +387,19 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
       ]
     }
   />
-  <div>
+  <div
+    className="actionBar_fe1jzmp"
+  >
     <button
-      onClick={[Function]}
+      className="button_f1o5na2b"
     >
-      Submit
+      Cancel
     </button>
+    <SubmitButton
+      actionPending={false}
+      onClick={[Function]}
+      text="Submit"
+    />
   </div>
 </div>
 `;
@@ -398,11 +408,7 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: With Sche
 <div>
   <SchedulerDescription />
   <p
-    style={
-      Object {
-        "fontWeight": 500,
-      }
-    }
+    className="bold_f1wf24vo"
   >
     Notebook: 
     Test Notebook.ipynb
@@ -487,7 +493,9 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: With Sche
       ]
     }
   />
-  <p>
+  <p
+    className="noTopMargin_felu21j"
+  >
     A scale is a predefined cluster specification.
     <LearnMoreLink
       href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
@@ -558,19 +566,28 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: With Sche
       label="Frequency"
       onChange={[Function]}
     />
-    <p>
+    <p
+      className="noTopMargin_felu21j"
+    >
       Schedule is specified using unix-cron format. You can define a schedule so that your job runs multiple times a day, or runs on specific days and months.
       <LearnMoreLink
         href="https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules"
       />
     </p>
   </div>
-  <div>
+  <div
+    className="actionBar_fe1jzmp"
+  >
     <button
-      onClick={[Function]}
+      className="button_f1o5na2b"
     >
-      Submit
+      Cancel
     </button>
+    <SubmitButton
+      actionPending={false}
+      onClick={[Function]}
+      text="Submit"
+    />
   </div>
 </div>
 `;
@@ -579,11 +596,7 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: Without S
 <div>
   <SchedulerDescription />
   <p
-    style={
-      Object {
-        "fontWeight": 500,
-      }
-    }
+    className="bold_f1wf24vo"
   >
     Notebook: 
     Test Notebook.ipynb
@@ -668,7 +681,9 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: Without S
       ]
     }
   />
-  <p>
+  <p
+    className="noTopMargin_felu21j"
+  >
     A scale is a predefined cluster specification.
     <LearnMoreLink
       href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
@@ -734,12 +749,19 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: Without S
       ]
     }
   />
-  <div>
+  <div
+    className="actionBar_fe1jzmp"
+  >
     <button
-      onClick={[Function]}
+      className="button_f1o5na2b"
     >
-      Submit
+      Cancel
     </button>
+    <SubmitButton
+      actionPending={false}
+      onClick={[Function]}
+      text="Submit"
+    />
   </div>
 </div>
 `;

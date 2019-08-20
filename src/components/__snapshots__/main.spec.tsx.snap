@@ -1,107 +1,91 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MainWidget Renders with Initializer: Initializer 1`] = `
-<div
-  className="jp-MainWidget"
+<main
+  className="column_f16sc48a"
 >
-  <main
-    className="jp-MainWidget-main"
-  >
-    <Initializer
-      gcpService={
-        Object {
-          "getProjectState": [MockFunction] {
-            "calls": Array [
-              Array [],
-            ],
-            "results": Array [
-              Object {
-                "type": "return",
-                "value": Promise {},
-              },
-            ],
-          },
-        }
-      }
-      onStateChange={[Function]}
-      projectState={
-        Object {
-          "allServicesEnabled": false,
-          "hasCloudFunction": false,
-          "hasGcsBucket": false,
-          "projectId": "test-project",
-          "ready": false,
-          "serviceStatuses": Array [
+  <Initializer
+    gcpService={
+      Object {
+        "getProjectState": [MockFunction] {
+          "calls": Array [
+            Array [],
+          ],
+          "results": Array [
             Object {
-              "enabled": false,
-              "service": Object {
-                "documentation": "https://cloud.google.com/storage/",
-                "endpoint": "storage-api.googleapis.com",
-                "name": "Cloud Storage API",
-              },
+              "type": "return",
+              "value": Promise {},
             },
           ],
-        }
+        },
       }
-    />
-  </main>
-</div>
+    }
+    onStateChange={[Function]}
+    projectState={
+      Object {
+        "allServicesEnabled": false,
+        "hasCloudFunction": false,
+        "hasGcsBucket": false,
+        "projectId": "test-project",
+        "ready": false,
+        "serviceStatuses": Array [
+          Object {
+            "enabled": false,
+            "service": Object {
+              "documentation": "https://cloud.google.com/storage/",
+              "endpoint": "storage-api.googleapis.com",
+              "name": "Cloud Storage API",
+            },
+          },
+        ],
+      }
+    }
+  />
+</main>
 `;
 
 exports[`MainWidget Renders with Initializer: Validating 1`] = `
-<div
-  className="jp-MainWidget"
+<main
+  className="column_f16sc48a"
 >
-  <main
-    className="jp-MainWidget-main"
-  >
-    <p>
-      Validating project configuration...
-    </p>
-  </main>
-</div>
+  <p>
+    Validating project configuration...
+  </p>
+</main>
 `;
 
 exports[`MainWidget Renders with SchedulerForm: SchedulerForm 1`] = `
-<div
-  className="jp-MainWidget"
+<main
+  className="column_f16sc48a"
 >
-  <main
-    className="jp-MainWidget-main"
-  >
-    <SchedulerForm
-      gcpService={
-        Object {
-          "getProjectState": [MockFunction] {
-            "calls": Array [
-              Array [],
-            ],
-            "results": Array [
-              Object {
-                "type": "return",
-                "value": Promise {},
-              },
-            ],
-          },
-        }
+  <SchedulerForm
+    gcpService={
+      Object {
+        "getProjectState": [MockFunction] {
+          "calls": Array [
+            Array [],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": Promise {},
+            },
+          ],
+        },
       }
-      notebook={null}
-      notebookName="Test Notebook.ipynb"
-    />
-  </main>
-</div>
+    }
+    notebook={null}
+    notebookName="Test Notebook.ipynb"
+  />
+</main>
 `;
 
 exports[`MainWidget Renders with SchedulerForm: Validating 1`] = `
-<div
-  className="jp-MainWidget"
+<main
+  className="column_f16sc48a"
 >
-  <main
-    className="jp-MainWidget-main"
-  >
-    <p>
-      Validating project configuration...
-    </p>
-  </main>
-</div>
+  <p>
+    Validating project configuration...
+  </p>
+</main>
 `;

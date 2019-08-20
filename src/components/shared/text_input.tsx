@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {css} from '../../styles';
 
 interface TextInputProps {
   label?: string;
@@ -11,11 +12,10 @@ interface TextInputProps {
 export function TextInput(props: TextInputProps) {
   const {onChange, label, placeholder} = props;
   return (
-    <div>
-      {label && <span>{label}</span>}
-      <div><input placeholder={placeholder}
+    <div className={css.inputContainer}>
+      {label && <label>{label}</label>}
+      <input className={css.input} placeholder={placeholder}
         onChange={(e) => onChange && onChange(e.target.value)} />
-      </div>
     </div>
   );
 }

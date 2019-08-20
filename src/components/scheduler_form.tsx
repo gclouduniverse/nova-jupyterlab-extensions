@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {CircularProgress} from '@material-ui/core';
 
 import {SchedulerDescription} from './shared/scheduler_description';
 import {TextInput} from './shared/text_input';
 import {CheckboxInput} from './shared/checkbox_input';
 import {SelectInput} from './shared/select_input';
+import {SubmitButton} from './shared/submit_button';
 import {
   CONTAINER_IMAGES, CUSTOM, MASTER_TYPES, Option, REGIONS, SCALE_TIERS,
   SCHEDULE_TYPES, SINGLE
@@ -12,6 +12,7 @@ import {
 import {MainProps} from './main';
 import {LearnMoreLink} from './shared/learn_more_link';
 import {RunNotebookRequest} from '../service/gcp';
+import {css} from '../styles';
 
 interface State {
   imageUri: string;
@@ -62,7 +63,7 @@ export class SchedulerForm extends React.Component<MainProps, State> {
     return (
       <div>
         <SchedulerDescription />
-        <p style={{fontWeight: 500}}>Notebook: {this.props.notebookName}</p>
+        <p className={css.bold}>Notebook: {this.props.notebookName}</p>
 
         <CheckboxInput label={CHECKBOX_LABEL}
           onChange={(shouldSubmitFiles) => this.setState({shouldSubmitFiles})} />
@@ -72,7 +73,7 @@ export class SchedulerForm extends React.Component<MainProps, State> {
           options={REGIONS} onChange={(region) => this.setState({region})} />
         <SelectInput label="Scale tier" options={scaleTierOptions}
           onChange={this.onScaleTierChanged} />
-        <p>
+        <p className={css.noTopMargin}>
           A scale is a predefined cluster specification.
           <LearnMoreLink href={SCALE_TIER_LINK} />
         </p>
@@ -90,7 +91,7 @@ export class SchedulerForm extends React.Component<MainProps, State> {
           <div>
             <TextInput label="Frequency"
               onChange={(schedule) => this.setState({schedule})} />
-            <p>
+            <p className={css.noTopMargin}>
               Schedule is specified using unix-cron format. You can define a
             schedule so that your job runs multiple times a day,
             or runs on specific days and months.
@@ -98,10 +99,10 @@ export class SchedulerForm extends React.Component<MainProps, State> {
             </p>
           </div>
         }
-        <div>
-          {submitPending ? <CircularProgress size='18px' /> :
-            <button
-              onClick={this._run}>Submit</button>}
+        <div className={css.actionBar}>
+          <button className={css.button}>Cancel</button>
+          <SubmitButton actionPending={submitPending} onClick={this._run}
+            text='Submit' />
         </div>
         {status && <p>{status}</p>}
       </div>
