@@ -2,15 +2,19 @@ import * as React from 'react';
 import {shallow} from 'enzyme';
 import {NBTestUtils} from '@jupyterlab/testutils';
 
-import {MainWidget} from './main';
+import {MainWidget, MainProps} from './main';
 import {GcpService, ProjectState} from '../service/gcp';
 
 describe('MainWidget', () => {
-  const fakeNotebookModel = NBTestUtils.createNotebook().model;
   const mockGetProject = jest.fn();
   const mockGcpService = {
     getProjectState: mockGetProject,
   } as undefined as GcpService;
+  const mockProps: MainProps = {
+    gcpService: mockGcpService,
+    notebook: NBTestUtils.createNotebook().model,
+    notebookName: 'Test Notebook.ipynb'
+  };
   let mockProjectState: ProjectState;
 
   beforeEach(() => {
@@ -23,40 +27,36 @@ describe('MainWidget', () => {
       ready: false,
       serviceStatuses: [{
         service: {
-          name: 'Compute Engine API',
-          endpoint: 'compute.googleapis.com',
-          documentation: 'https://cloud.google.com/compute/',
+          name: 'Cloud Storage API',
+          endpoint: 'storage-api.googleapis.com',
+          documentation: 'https://cloud.google.com/storage/',
         },
         enabled: false,
       }]
     };
   });
 
-  it('Renders with Scheduler', async () => {
+  it('Renders with SchedulerForm', async () => {
     mockProjectState.ready = true;
     mockProjectState.hasGcsBucket = true;
     mockProjectState.hasGcsBucket = true;
     mockProjectState.serviceStatuses[0].enabled = true;
     const statePromise = Promise.resolve(mockProjectState);
     mockGetProject.mockReturnValue(statePromise);
-    const main = shallow(
-      <MainWidget gcpService={mockGcpService} notebook={fakeNotebookModel} />
-    );
-    expect(main).toMatchSnapshot();
+    const main = shallow(<MainWidget {...mockProps} />);
+    expect(main).toMatchSnapshot('Validating');
 
     await statePromise;
-    expect(main).toMatchSnapshot();
+    expect(main).toMatchSnapshot('SchedulerForm');
   });
 
   it('Renders with Initializer', async () => {
     const statePromise = Promise.resolve(mockProjectState);
     mockGetProject.mockReturnValue(statePromise);
-    const main = shallow(
-      <MainWidget gcpService={mockGcpService} notebook={fakeNotebookModel} />
-    );
-    expect(main).toMatchSnapshot();
+    const main = shallow(<MainWidget {...mockProps} />);
+    expect(main).toMatchSnapshot('Validating');
 
     await statePromise;
-    expect(main).toMatchSnapshot();
+    expect(main).toMatchSnapshot('Initializer');
   });
 });

@@ -1,20 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MainWidget Renders with Initializer 1`] = `
-<div
-  className="jp-MainWidget"
->
-  <main
-    className="jp-MainWidget-main"
-  >
-    <p>
-      Validating project configuration...
-    </p>
-  </main>
-</div>
-`;
-
-exports[`MainWidget Renders with Initializer 2`] = `
+exports[`MainWidget Renders with Initializer: Initializer 1`] = `
 <div
   className="jp-MainWidget"
 >
@@ -49,9 +35,9 @@ exports[`MainWidget Renders with Initializer 2`] = `
             Object {
               "enabled": false,
               "service": Object {
-                "documentation": "https://cloud.google.com/compute/",
-                "endpoint": "compute.googleapis.com",
-                "name": "Compute Engine API",
+                "documentation": "https://cloud.google.com/storage/",
+                "endpoint": "storage-api.googleapis.com",
+                "name": "Cloud Storage API",
               },
             },
           ],
@@ -62,7 +48,7 @@ exports[`MainWidget Renders with Initializer 2`] = `
 </div>
 `;
 
-exports[`MainWidget Renders with Scheduler 1`] = `
+exports[`MainWidget Renders with Initializer: Validating 1`] = `
 <div
   className="jp-MainWidget"
 >
@@ -76,14 +62,46 @@ exports[`MainWidget Renders with Scheduler 1`] = `
 </div>
 `;
 
-exports[`MainWidget Renders with Scheduler 2`] = `
+exports[`MainWidget Renders with SchedulerForm: SchedulerForm 1`] = `
 <div
   className="jp-MainWidget"
 >
   <main
     className="jp-MainWidget-main"
   >
-    <SchedulerForm />
+    <SchedulerForm
+      gcpService={
+        Object {
+          "getProjectState": [MockFunction] {
+            "calls": Array [
+              Array [],
+            ],
+            "results": Array [
+              Object {
+                "type": "return",
+                "value": Promise {},
+              },
+            ],
+          },
+        }
+      }
+      notebook={null}
+      notebookName="Test Notebook.ipynb"
+    />
+  </main>
+</div>
+`;
+
+exports[`MainWidget Renders with SchedulerForm: Validating 1`] = `
+<div
+  className="jp-MainWidget"
+>
+  <main
+    className="jp-MainWidget-main"
+  >
+    <p>
+      Validating project configuration...
+    </p>
   </main>
 </div>
 `;

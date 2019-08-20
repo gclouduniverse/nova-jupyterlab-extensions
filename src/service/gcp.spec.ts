@@ -1,4 +1,4 @@
-import {GcpService, RunNotebookRequest, ScaleTier} from './gcp';
+import {GcpService, RunNotebookRequest} from './gcp';
 
 const _setTimeout = global.setTimeout;
 const FAKE_GAPI_PROVIDER = Promise.resolve();
@@ -54,7 +54,6 @@ describe('GcpService', () => {
           return {
             result: {
               services: [
-                {serviceName: 'compute.googleapis.com'},
                 {serviceName: 'storage-api.googleapis.com'},
                 {serviceName: 'cloudscheduler.googleapis.com'},
                 {serviceName: 'ml.googleapis.com'},
@@ -90,14 +89,6 @@ describe('GcpService', () => {
         projectId: 'test-project',
         ready: true,
         serviceStatuses: [
-          {
-            enabled: true,
-            service: {
-              name: 'Compute Engine API',
-              endpoint: 'compute.googleapis.com',
-              documentation: 'https://cloud.google.com/compute/',
-            }
-          },
           {
             service: {
               name: 'Cloud Storage API',
@@ -166,14 +157,6 @@ describe('GcpService', () => {
         ready: false,
         serviceStatuses: [
           {
-            enabled: false,
-            service: {
-              name: 'Compute Engine API',
-              endpoint: 'compute.googleapis.com',
-              documentation: 'https://cloud.google.com/compute/',
-            }
-          },
-          {
             service: {
               name: 'Cloud Storage API',
               endpoint: 'storage-api.googleapis.com',
@@ -233,7 +216,6 @@ describe('GcpService', () => {
              return {
                result: {
                  services: [
-                   {serviceName: 'compute.googleapis.com'},
                    {serviceName: 'cloudscheduler.googleapis.com'},
                    {serviceName: 'ml.googleapis.com'},
                    {serviceName: 'cloudfunctions.googleapis.com'},
@@ -268,14 +250,6 @@ describe('GcpService', () => {
            projectId: 'test-project',
            ready: false,
            serviceStatuses: [
-             {
-               enabled: true,
-               service: {
-                 name: 'Compute Engine API',
-                 endpoint: 'compute.googleapis.com',
-                 documentation: 'https://cloud.google.com/compute/',
-               }
-             },
              {
                service: {
                  name: 'Cloud Storage API',
@@ -585,9 +559,10 @@ describe('GcpService', () => {
       jobId: 'test_notebook_job',
       imageUri: 'gcr.io/deeplearning-platform-release/tf-gpu.1-14:m32',
       inputNotebookGcsPath: 'gs://test-bucket/test_nb.ipynb',
+      masterType: '',
       outputNotebookGcsPath: 'gs://test-bucket/test_nb-out.ipynb',
       region: 'us-east1',
-      scaleTier: ScaleTier.STANDARD_1,
+      scaleTier: 'STANDARD_1',
     };
 
     const aiPlatformJobBody: gapi.client.ml.GoogleCloudMlV1__Job = {

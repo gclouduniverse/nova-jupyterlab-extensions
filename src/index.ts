@@ -42,7 +42,7 @@ export class ButtonExtension implements
         const dialog = new Dialog({
           title: 'Schedule Notebook on GCP',
           buttons: [Dialog.cancelButton()],
-          body: mainWidgetFactory(this.gcpService, context.model),
+          body: mainWidgetFactory(this.gcpService, context.path, context.model),
         });
         dialog.launch();
       }

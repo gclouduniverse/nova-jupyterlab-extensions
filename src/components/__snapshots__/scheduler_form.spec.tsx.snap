@@ -1,0 +1,745 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With MachineTypes 1`] = `
+<div>
+  <SchedulerDescription />
+  <p
+    style={
+      Object {
+        "fontWeight": 500,
+      }
+    }
+  >
+    Notebook: 
+    Test Notebook.ipynb
+  </p>
+  <CheckboxInput
+    label="Submit all the files in the with the notebook"
+    onChange={[Function]}
+  />
+  <TextInput
+    label="Run name"
+    onChange={[Function]}
+  />
+  <SelectInput
+    label="Region"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "us-central1 (Iowa)",
+          "value": "us-central1",
+        },
+        Object {
+          "text": "us-east1 (South Carolina)",
+          "value": "us-east1",
+        },
+        Object {
+          "text": "us-west1 (Oregon)",
+          "value": "us-west1",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "europe-west1 (Belgium)",
+          "value": "europe-west1",
+        },
+        Object {
+          "text": "europe-west4 (Netherlands)",
+          "value": "europe-west4",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "asia-southeast1 (Singapore)",
+          "value": "asia-southeast1",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Scale tier"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single worker instance",
+          "value": "BASIC",
+        },
+        Object {
+          "text": "Many worker instances and a few parameter servers",
+          "value": "STANDARD_1",
+        },
+        Object {
+          "text": "A large number of workers with many parameter servers",
+          "value": "PREMIUM_1",
+        },
+        Object {
+          "text": "A single worker instance with a GPU",
+          "value": "BASIC_GPU",
+        },
+        Object {
+          "text": "A single worker instance with a Cloud TPU",
+          "value": "BASIC_TPU",
+        },
+        Object {
+          "text": "Custom machine type configuration",
+          "value": "CUSTOM",
+        },
+      ]
+    }
+  />
+  <p>
+    A scale is a predefined cluster specification.
+    <LearnMoreLink
+      href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
+    />
+  </p>
+  <SelectInput
+    label="Machine type"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "4 CPUs, 15 GB RAM, No Accelerators",
+          "value": "standard",
+        },
+        Object {
+          "text": "8 CPUs, 52 GB RAM, No Accelerators",
+          "value": "large_model",
+        },
+        Object {
+          "text": "8 CPUs, 7.2 GB RAM, No Accelerators",
+          "value": "complex_model_s",
+        },
+        Object {
+          "text": "16 CPUs, 14.4 GB RAM, No Accelerators",
+          "value": "complex_model_m",
+        },
+        Object {
+          "text": "32 CPUs, 28.8 GB RAM, No Accelerators",
+          "value": "complex_model_l",
+        },
+        Object {
+          "text": "8 CPUs, 30 GB RAM, 1 NVIDIA Tesla K80 GPU",
+          "value": "standard_gpu",
+        },
+        Object {
+          "text": "4 CPUs, 15 GB RAM, 4 NVIDIA Tesla K80 GPUs",
+          "value": "complex_model_m_gpu",
+        },
+        Object {
+          "text": "4 CPUs, 15 GB RAM, 8 NVIDIA Tesla K80 GPUs",
+          "value": "complex_model_l_gpu",
+        },
+        Object {
+          "text": "8 CPUs, 30 GB RAM, 1 NVIDIA Tesla P100 GPU",
+          "value": "standard_p100",
+        },
+        Object {
+          "text": "4 CPUs, 15 GB RAM, 4 NVIDIA Tesla K80 GPUs",
+          "value": "complex_model_m_p100",
+        },
+        Object {
+          "text": "4 CPUs, 15 GB RAM, 8 NVIDIA Tesla K80 GPUs",
+          "value": "complex_model_l_gpu",
+        },
+        Object {
+          "text": "8 TPU cores",
+          "value": "cloud_tpu",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Container"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Python",
+          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
+        },
+        Object {
+          "text": "PyTorch (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
+        },
+        Object {
+          "text": "PyTorch (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Type"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single run",
+          "value": "single",
+        },
+        Object {
+          "text": "Recurring run",
+          "value": "recurring",
+        },
+      ]
+    }
+  />
+  <div>
+    <button
+      onClick={[Function]}
+    >
+      Submit
+    </button>
+  </div>
+</div>
+`;
+
+exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: Without MachineTypes 1`] = `
+<div>
+  <SchedulerDescription />
+  <p
+    style={
+      Object {
+        "fontWeight": 500,
+      }
+    }
+  >
+    Notebook: 
+    Test Notebook.ipynb
+  </p>
+  <CheckboxInput
+    label="Submit all the files in the with the notebook"
+    onChange={[Function]}
+  />
+  <TextInput
+    label="Run name"
+    onChange={[Function]}
+  />
+  <SelectInput
+    label="Region"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "us-central1 (Iowa)",
+          "value": "us-central1",
+        },
+        Object {
+          "text": "us-east1 (South Carolina)",
+          "value": "us-east1",
+        },
+        Object {
+          "text": "us-west1 (Oregon)",
+          "value": "us-west1",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "europe-west1 (Belgium)",
+          "value": "europe-west1",
+        },
+        Object {
+          "text": "europe-west4 (Netherlands)",
+          "value": "europe-west4",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "asia-southeast1 (Singapore)",
+          "value": "asia-southeast1",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Scale tier"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single worker instance",
+          "value": "BASIC",
+        },
+        Object {
+          "text": "Many worker instances and a few parameter servers",
+          "value": "STANDARD_1",
+        },
+        Object {
+          "text": "A large number of workers with many parameter servers",
+          "value": "PREMIUM_1",
+        },
+        Object {
+          "text": "A single worker instance with a GPU",
+          "value": "BASIC_GPU",
+        },
+        Object {
+          "text": "A single worker instance with a Cloud TPU",
+          "value": "BASIC_TPU",
+        },
+        Object {
+          "text": "Custom machine type configuration",
+          "value": "CUSTOM",
+        },
+      ]
+    }
+  />
+  <p>
+    A scale is a predefined cluster specification.
+    <LearnMoreLink
+      href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
+    />
+  </p>
+  <SelectInput
+    label="Container"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Python",
+          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
+        },
+        Object {
+          "text": "PyTorch (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
+        },
+        Object {
+          "text": "PyTorch (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Type"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single run",
+          "value": "single",
+        },
+        Object {
+          "text": "Recurring run",
+          "value": "recurring",
+        },
+      ]
+    }
+  />
+  <div>
+    <button
+      onClick={[Function]}
+    >
+      Submit
+    </button>
+  </div>
+</div>
+`;
+
+exports[`SchedulerForm Toggles Schedule visibility based on Frequency: With Schedule 1`] = `
+<div>
+  <SchedulerDescription />
+  <p
+    style={
+      Object {
+        "fontWeight": 500,
+      }
+    }
+  >
+    Notebook: 
+    Test Notebook.ipynb
+  </p>
+  <CheckboxInput
+    label="Submit all the files in the with the notebook"
+    onChange={[Function]}
+  />
+  <TextInput
+    label="Run name"
+    onChange={[Function]}
+  />
+  <SelectInput
+    label="Region"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "us-central1 (Iowa)",
+          "value": "us-central1",
+        },
+        Object {
+          "text": "us-east1 (South Carolina)",
+          "value": "us-east1",
+        },
+        Object {
+          "text": "us-west1 (Oregon)",
+          "value": "us-west1",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "europe-west1 (Belgium)",
+          "value": "europe-west1",
+        },
+        Object {
+          "text": "europe-west4 (Netherlands)",
+          "value": "europe-west4",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "asia-southeast1 (Singapore)",
+          "value": "asia-southeast1",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Scale tier"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single worker instance",
+          "value": "BASIC",
+        },
+        Object {
+          "text": "Many worker instances and a few parameter servers",
+          "value": "STANDARD_1",
+        },
+        Object {
+          "text": "A large number of workers with many parameter servers",
+          "value": "PREMIUM_1",
+        },
+        Object {
+          "text": "A single worker instance with a GPU",
+          "value": "BASIC_GPU",
+        },
+        Object {
+          "text": "A single worker instance with a Cloud TPU",
+          "value": "BASIC_TPU",
+        },
+        Object {
+          "text": "Custom machine type configuration",
+          "value": "CUSTOM",
+        },
+      ]
+    }
+  />
+  <p>
+    A scale is a predefined cluster specification.
+    <LearnMoreLink
+      href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
+    />
+  </p>
+  <SelectInput
+    label="Container"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Python",
+          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
+        },
+        Object {
+          "text": "PyTorch (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
+        },
+        Object {
+          "text": "PyTorch (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Type"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single run",
+          "value": "single",
+        },
+        Object {
+          "text": "Recurring run",
+          "value": "recurring",
+        },
+      ]
+    }
+  />
+  <div>
+    <TextInput
+      label="Frequency"
+      onChange={[Function]}
+    />
+    <p>
+      Schedule is specified using unix-cron format. You can define a schedule so that your job runs multiple times a day, or runs on specific days and months.
+      <LearnMoreLink
+        href="https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules"
+      />
+    </p>
+  </div>
+  <div>
+    <button
+      onClick={[Function]}
+    >
+      Submit
+    </button>
+  </div>
+</div>
+`;
+
+exports[`SchedulerForm Toggles Schedule visibility based on Frequency: Without Schedule 1`] = `
+<div>
+  <SchedulerDescription />
+  <p
+    style={
+      Object {
+        "fontWeight": 500,
+      }
+    }
+  >
+    Notebook: 
+    Test Notebook.ipynb
+  </p>
+  <CheckboxInput
+    label="Submit all the files in the with the notebook"
+    onChange={[Function]}
+  />
+  <TextInput
+    label="Run name"
+    onChange={[Function]}
+  />
+  <SelectInput
+    label="Region"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "us-central1 (Iowa)",
+          "value": "us-central1",
+        },
+        Object {
+          "text": "us-east1 (South Carolina)",
+          "value": "us-east1",
+        },
+        Object {
+          "text": "us-west1 (Oregon)",
+          "value": "us-west1",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "europe-west1 (Belgium)",
+          "value": "europe-west1",
+        },
+        Object {
+          "text": "europe-west4 (Netherlands)",
+          "value": "europe-west4",
+        },
+        Object {
+          "text": "asia-east1 (Taiwan)",
+          "value": "asia-east1",
+        },
+        Object {
+          "text": "asia-southeast1 (Singapore)",
+          "value": "asia-southeast1",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Scale tier"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single worker instance",
+          "value": "BASIC",
+        },
+        Object {
+          "text": "Many worker instances and a few parameter servers",
+          "value": "STANDARD_1",
+        },
+        Object {
+          "text": "A large number of workers with many parameter servers",
+          "value": "PREMIUM_1",
+        },
+        Object {
+          "text": "A single worker instance with a GPU",
+          "value": "BASIC_GPU",
+        },
+        Object {
+          "text": "A single worker instance with a Cloud TPU",
+          "value": "BASIC_TPU",
+        },
+        Object {
+          "text": "Custom machine type configuration",
+          "value": "CUSTOM",
+        },
+      ]
+    }
+  />
+  <p>
+    A scale is a predefined cluster specification.
+    <LearnMoreLink
+      href="https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers"
+    />
+  </p>
+  <SelectInput
+    label="Container"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Python",
+          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 1.14 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
+        },
+        Object {
+          "text": "TensorFlow 2.0 (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
+        },
+        Object {
+          "text": "PyTorch (CPU only)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
+        },
+        Object {
+          "text": "PyTorch (GPU)",
+          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+        Object {
+          "text": "R (with r-essentials)",
+          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
+        },
+      ]
+    }
+  />
+  <SelectInput
+    label="Type"
+    onChange={[Function]}
+    options={
+      Array [
+        Object {
+          "text": "Single run",
+          "value": "single",
+        },
+        Object {
+          "text": "Recurring run",
+          "value": "recurring",
+        },
+      ]
+    }
+  />
+  <div>
+    <button
+      onClick={[Function]}
+    >
+      Submit
+    </button>
+  </div>
+</div>
+`;

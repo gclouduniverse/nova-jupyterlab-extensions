@@ -1,109 +1,164 @@
 import * as React from 'react';
+import {CircularProgress} from '@material-ui/core';
+
 import {SchedulerDescription} from './shared/scheduler_description';
 import {TextInput} from './shared/text_input';
 import {CheckboxInput} from './shared/checkbox_input';
 import {SelectInput} from './shared/select_input';
-import {REGIONS, SCHEDULE_TYPES, Option, findOptionByValue, getMachineTypeOptions, getGpuTypeOptions, MachineType, getGpuDataList, GpuData} from '../scheduler/data';
+import {
+  CONTAINER_IMAGES, CUSTOM, MASTER_TYPES, Option, REGIONS, SCALE_TIERS,
+  SCHEDULE_TYPES, SINGLE
+} from '../data';
+import {MainProps} from './main';
+import {LearnMoreLink} from './shared/learn_more_link';
+import {RunNotebookRequest} from '../service/gcp';
 
-interface SchedulerFormState {
+interface State {
+  imageUri: string;
+  jobId: string;
+  region: string;
+  scaleTier: string;
+  scaleTierOptions: Option[];
+  masterType?: string;
+  masterTypeOptions: Option[];
+  schedule?: string;
+  shouldSubmitFiles: boolean;
   shouldShowFrequency: boolean;
-  shouldShowGpuCount: boolean;
-  zoneOptions: Option[];
-  machineTypeOptions: Option[];
-  gpuTypeOptions: Option[];
-  gpuCountOptions: Option[];
+  submitPending: boolean;
+  status?: string;
 }
 
-export class SchedulerForm extends React.Component<{}, SchedulerFormState> {
-  private zoneInputRef: React.RefObject<HTMLSelectElement>;
-  private machineTypeOptionsStore: MachineType[];
-  private gpuDataStore: GpuData[];
+const CHECKBOX_LABEL = 'Submit all the files in the with the notebook';
+const SCHEDULE_LINK =
+  'https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules';
+const SCALE_TIER_LINK =
+  'https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers';
 
-  constructor(props: {}) {
+/** Form Component to submit Scheduled Notebooks */
+export class SchedulerForm extends React.Component<MainProps, State> {
+
+  constructor(props: MainProps) {
     super(props);
-
     this.state = {
+      imageUri: String(CONTAINER_IMAGES[0].value),
+      jobId: '',
+      region: String(REGIONS[0].value),
+      scaleTier: String(SCALE_TIERS[0].value),
+      scaleTierOptions: SCALE_TIERS,
+      masterTypeOptions: MASTER_TYPES,
+      schedule: '? 0 * * *',
+      shouldSubmitFiles: true,
       shouldShowFrequency: false,
-      shouldShowGpuCount: false,
-      zoneOptions: [],
-      machineTypeOptions: [],
-      gpuTypeOptions: [],
-      gpuCountOptions: [],
-    }
+      submitPending: false,
+    };
 
-    this.zoneInputRef = React.createRef();
-    this.machineTypeOptionsStore = [];
-    this.gpuDataStore = [];
+    this.onScaleTierChanged = this.onScaleTierChanged.bind(this);
+    this._run = this._run.bind(this);
   }
 
   render() {
-    const checkboxLabel = `Submit all the files in "home/path/to/current/directory" with the notebook`;
-
-    // TODO move config of input to const
+    const {scaleTier, scaleTierOptions, masterTypeOptions,
+      shouldShowFrequency, submitPending, status} = this.state;
     return (
       <div>
         <SchedulerDescription />
-        <TextInput id="notebook-input" label="Notebook" />
-        <CheckboxInput id="all-files-checkbox" label={checkboxLabel}></CheckboxInput>
-        <TextInput id="run-name-input" label="Run name" />
-        <SelectInput id="region-input" label="Region" options={REGIONS} onChange={(value: string) => this.onRegionChange(value)} />
-        <SelectInput id="zone-input" label="Zone" options={this.state.zoneOptions} forwardedRef={this.zoneInputRef} onChange={(value: string) => this.onZoneChange(value)} />
-        <SelectInput id="machine-type-input" label="Machine type" options={this.state.machineTypeOptions} onChange={(value: string) => this.onMachineTypeChange(value)} />
-        <SelectInput id="gpu-type-input" label="GPU type" options={this.state.gpuTypeOptions} onChange={(value: string) => this.onGpuTypeChange(value)} />
-        {this.state.shouldShowGpuCount && <SelectInput id="gpu-count-input" label="GPU count" options={this.state.gpuCountOptions} />}
-        <SelectInput id="schedule-type-input" label="Type" onChange={(value: string) => this.onScheduleTypeChange(value)} options={SCHEDULE_TYPES} />
-        {this.state.shouldShowFrequency && <TextInput id="frequencyInput" label="Frequency" />}
+        <p style={{fontWeight: 500}}>Notebook: {this.props.notebookName}</p>
+
+        <CheckboxInput label={CHECKBOX_LABEL}
+          onChange={(shouldSubmitFiles) => this.setState({shouldSubmitFiles})} />
+        <TextInput label="Run name"
+          onChange={(jobId) => this.setState({jobId})} />
+        <SelectInput label="Region"
+          options={REGIONS} onChange={(region) => this.setState({region})} />
+        <SelectInput label="Scale tier" options={scaleTierOptions}
+          onChange={this.onScaleTierChanged} />
+        <p>
+          A scale is a predefined cluster specification.
+          <LearnMoreLink href={SCALE_TIER_LINK} />
+        </p>
+        {scaleTier === CUSTOM &&
+          <SelectInput label="Machine type" options={masterTypeOptions}
+            onChange={(masterType) => this.setState({masterType})} />
+        }
+        <SelectInput label="Container" options={CONTAINER_IMAGES}
+          onChange={(imageUri) => this.setState({imageUri})} />
+        <SelectInput label="Type" options={SCHEDULE_TYPES}
+          onChange={(scheduleType) => this.setState({
+            shouldShowFrequency: scheduleType !== SINGLE
+          })} />
+        {shouldShowFrequency &&
+          <div>
+            <TextInput label="Frequency"
+              onChange={(schedule) => this.setState({schedule})} />
+            <p>
+              Schedule is specified using unix-cron format. You can define a
+            schedule so that your job runs multiple times a day,
+            or runs on specific days and months.
+              <LearnMoreLink href={SCHEDULE_LINK} />
+            </p>
+          </div>
+        }
+        <div>
+          {submitPending ? <CircularProgress size='18px' /> :
+            <button
+              onClick={this._run}>Submit</button>}
+        </div>
+        {status && <p>{status}</p>}
       </div>
     );
   }
 
-  onRegionChange(selectedRegion: string) {
+  onScaleTierChanged(scaleTier: string) {
     this.setState({
-      zoneOptions: findOptionByValue(REGIONS, selectedRegion).zones
+      scaleTier,
+      masterType: scaleTier !== CUSTOM ? '' : this.state.masterType
     });
   }
 
-  onZoneChange(selectedZone: string) {
-    this.machineTypeOptionsStore = getMachineTypeOptions(selectedZone);
-    this.setState({
-      machineTypeOptions: this.machineTypeOptionsStore
-    });
-  }
+  private async _run() {
+    const {gcpService, notebook} = this.props;
+    const request = this._buildRunNotebookRequest();
 
-  onMachineTypeChange(selectedMachineType: string) {
-    const selectedZone = this.zoneInputRef.current.value;
-    const gpuTypeOptions = getGpuTypeOptions(selectedMachineType, selectedZone);
-    const selectedMachineTypeObj = findOptionByValue(getMachineTypeOptions(selectedZone), selectedMachineType);
-    this.gpuDataStore = getGpuDataList(selectedMachineTypeObj, gpuTypeOptions);
+    let status =
+      `Uploading ${this.props.notebookName} to ${request.inputNotebookGcsPath}`;
+    this.setState({status});
+    await gcpService.uploadNotebook(notebook.toString(),
+      request.inputNotebookGcsPath);
 
-    this.setState({
-      gpuTypeOptions: this.gpuDataStore.map((gpuData: GpuData) => gpuData.type)
-    });
-  }
-
-  onGpuTypeChange(selectedGpuType: string) {
-    const gpuCountOptions = this.gpuDataStore
-      .find(
-        (data: GpuData) => {
-          return data.type.value === selectedGpuType
-        })!.counts;
-
-    this.setState({
-      shouldShowGpuCount: selectedGpuType !== '',
-      gpuCountOptions: gpuCountOptions
-    });
-  }
-
-  onScheduleTypeChange(selectedScheduleType: string) {
-    // Show/hide frequency input based on schedule type
-    if (selectedScheduleType === 'single') {
-      this.setState({
-        shouldShowFrequency: false,
-      });
+    if (this.state.shouldShowFrequency && this.state.schedule) {
+      status = 'Submitting Job to Cloud Scheduler';
+      this.setState({status});
+      // TODO: Obtain Cloud Function URL and Service Account from settings
+      const job = await gcpService.scheduleNotebook(request,
+        'https://us-central1-prodonjs-kubeflow-dev.cloudfunctions.net/submitScheduledNotebook',
+        'prodonjs-kubeflow-dev@appspot.gserviceaccount.com',
+        this.state.schedule
+      );
+      status = `Successfully created ${job.name}`;
     } else {
-      this.setState({
-        shouldShowFrequency: true,
-      });
+      status = 'Submitting Job to AI Platform';
+      this.setState({status});
+      const job = await gcpService.runNotebook(request);
+      status = `Successfully created ${job.jobId}`;
     }
+    this.setState({status});
+  }
+
+  private _buildRunNotebookRequest(): RunNotebookRequest {
+    const {notebookName} = this.props;
+    const {jobId, imageUri, region, scaleTier, masterType} = this.state;
+
+    // TODO: Obtain bucket from project settings stored during initialization
+    const inputNotebookGcsPath = `gs://prodonjs-kubeflow-dev/notebooks/${notebookName}`;
+    const outputNotebookGcsPath = inputNotebookGcsPath + '__out.ipynb';
+    return {
+      jobId,
+      imageUri,
+      inputNotebookGcsPath,
+      masterType,
+      outputNotebookGcsPath,
+      scaleTier,
+      region,
+    };
   }
 }

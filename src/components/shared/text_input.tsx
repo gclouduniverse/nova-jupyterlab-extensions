@@ -1,23 +1,21 @@
 import * as React from 'react';
 
-export interface TextInputProps {
-  id: string;
+interface TextInputProps {
   label?: string;
   placeholder?: string;
+  onChange?: (value: string) => void;
 }
 
-export class TextInput extends React.Component<TextInputProps> {
-  constructor(props: TextInputProps) {
-    super(props);
-  }
-
-  render() {
-    const {id, label, placeholder} = this.props;
-    return (
-      <div>
-        {label && <span>{label}</span>}
-        <div><input id={id} placeholder={placeholder} /></div>
+/** Funtional Component for text input fields */
+// tslint:disable-next-line:enforce-name-casing
+export function TextInput(props: TextInputProps) {
+  const {onChange, label, placeholder} = props;
+  return (
+    <div>
+      {label && <span>{label}</span>}
+      <div><input placeholder={placeholder}
+        onChange={(e) => onChange && onChange(e.target.value)} />
       </div>
-    );
-  }
+    </div>
+  );
 }

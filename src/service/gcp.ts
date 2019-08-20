@@ -30,20 +30,6 @@ interface ServiceStatus {
   enabled: boolean;
 }
 
-
-/**
- * Scale tier values for AI Platform Jobs
- * https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs#scaletier
- */
-export enum ScaleTier {
-  BASIC = 'BASIC',
-  STANDARD_1 = 'STANDARD_1',
-  PREMIUM_1 = 'PREMIUM_1',
-  BASIC_GPU = 'BASIC_GPU',
-  BASIC_TPU = 'BASIC_TPU',
-  CUSTOM = 'CUSTOM',
-}
-
 /**
  * Cloud Scheduler Job
  * https://cloud.google.com/scheduler/docs/reference/rest/v1/projects.locations.jobs#Job
@@ -75,8 +61,9 @@ export interface RunNotebookRequest {
   imageUri: string;
   inputNotebookGcsPath: string;
   jobId: string;
+  masterType: string;
   outputNotebookGcsPath: string;
-  scaleTier: ScaleTier;
+  scaleTier: string;
   region: string;
 }
 
@@ -84,11 +71,6 @@ type Operation = gapi.client.servicemanagement.Operation;
 
 // Static list of required GCP services
 const REQUIRED_SERVICES: ReadonlyArray<Service> = [
-  {
-    name: 'Compute Engine API',
-    endpoint: 'compute.googleapis.com',
-    documentation: 'https://cloud.google.com/compute/',
-  },
   {
     name: 'Cloud Storage API',
     endpoint: 'storage-api.googleapis.com',
@@ -298,6 +280,9 @@ export class GcpService {
     try {
       const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
       gapi.client.setToken({access_token: auth.token});
+      // TODO: Region needs to match the location of the AppEngine project,
+      // not the AI Platform request
+      // https://cloud.google.com/scheduler/docs/
       const locationPrefix =
           `projects/${auth.project}/locations/${request.region}/jobs`;
       const requestBody: CloudSchedulerJob = {

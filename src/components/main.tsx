@@ -12,7 +12,8 @@ export interface PropsWithGcpService {
   gcpService: GcpService;
 }
 
-interface Props extends PropsWithGcpService {
+export interface MainProps extends PropsWithGcpService {
+  notebookName: string;
   notebook: INotebookModel;
 }
 
@@ -25,9 +26,9 @@ export const CSS_BASE = 'jp-MainWidget';
 /**
  * Main React component to manage the state of the Scheduler Extension
  */
-export class MainWidget extends React.Component<Props, State> {
+export class MainWidget extends React.Component<MainProps, State> {
 
-  constructor(props: Props) {
+  constructor(props: MainProps) {
     super(props);
 
     this.state = {};
@@ -43,7 +44,8 @@ export class MainWidget extends React.Component<Props, State> {
     return (<div className={CSS_BASE}>
       <main className={`${CSS_BASE}-main`}>
         {!projectState && <p>Validating project configuration...</p>}
-        {projectState && projectState.ready && <SchedulerForm />}
+        {projectState && projectState.ready &&
+          <SchedulerForm {...this.props} />}
         {projectState && !projectState.ready
           && <Initializer gcpService={this.props.gcpService}
             projectState={projectState}
@@ -59,8 +61,8 @@ export class MainWidget extends React.Component<Props, State> {
   }
 }
 
-export function mainWidgetFactory(gcpService: GcpService,
+export function mainWidgetFactory(gcpService: GcpService, notebookName: string,
   notebook: INotebookModel): Widget {
-  const props = {gcpService, notebook};
+  const props = {gcpService, notebookName, notebook};
   return new ReactElementWidget(<MainWidget {...props} />);
 }
