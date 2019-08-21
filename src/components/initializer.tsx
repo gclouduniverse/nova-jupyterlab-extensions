@@ -1,9 +1,15 @@
 import * as React from 'react';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import {Check, Close, Launch} from '@material-ui/icons';
+import * as csstips from 'csstips';
+import {Check, Close} from '@material-ui/icons';
+import {withStyles} from '@material-ui/core';
+import {stylesheet} from 'typestyle';
 
-import {PropsWithGcpService, CSS_BASE} from './main';
+import {PropsWithGcpService} from './main';
 import {ProjectState} from '../service/gcp';
+import {css, COLORS} from '../styles';
+import {LearnMoreLink} from './shared/learn_more_link';
+import {SubmitButton} from './shared/submit_button';
+
 interface Props extends PropsWithGcpService {
   projectState: ProjectState;
   onStateChange: () => void;
@@ -15,6 +21,39 @@ interface State {
   creatingCloudFunction: boolean;
   error?: string;
 }
+
+const localStyles = stylesheet({
+  serviceStatuses: {
+    ...csstips.vertical,
+    ...csstips.padding('16px', 0)
+  },
+  serviceStatusItem: {
+    alignItems: 'center',
+    color: COLORS.link,
+    letterSpacing: '0.09px',
+    lineHeight: '20px',
+    ...csstips.horizontal,
+    $nest: {
+      '&>*': {paddingRight: '4px'}
+    }
+  }
+});
+
+// tslint:disable-next-line:enforce-name-casing
+const GreenCheck = withStyles({
+  root: {
+    color: COLORS.green,
+    fontSize: '16px',
+  }
+})(Check);
+
+// tslint:disable-next-line:enforce-name-casing
+const RedClose = withStyles({
+  root: {
+    color: COLORS.red,
+    fontSize: '16px',
+  }
+})(Close);
 
 export class Initializer extends React.Component<Props, State> {
 
@@ -35,7 +74,7 @@ export class Initializer extends React.Component<Props, State> {
     const operationsPending = enablingApis || creatingGcsBucket ||
       creatingCloudFunction;
     return (
-      <div>
+      <div className={css.column}>
         <p>
           In order to schedule Notebook runs, the following APIs must be
           enabled, a Cloud Storage Bucket must be available, and a Cloud
@@ -44,31 +83,27 @@ export class Initializer extends React.Component<Props, State> {
           clicking <em>Initialize</em>, you are agreeing to the terms
           of service for the various APIs and charges in use.
         </p>
-        <div className={`${CSS_BASE}-serviceStatuses`}>
+        <div className={localStyles.serviceStatuses}>
           {projectState.serviceStatuses.map((s) => {
-            return <a className={`${CSS_BASE}-serviceStatusItem`}
-              key={s.service.endpoint} href={s.service.documentation}
-              target="_blank">
+            return <div className={localStyles.serviceStatusItem}
+              key={s.service.endpoint}>
               {this._getIconForState(s.enabled)}
-              <span>{s.service.name}</span>
-              <Launch fontSize='small' classes={{fontSizeSmall: 'smallIcon'}} />
-            </a>;
+              <LearnMoreLink href={s.service.documentation}
+                text={s.service.name} />
+            </div>;
           })}
-          <div className={`${CSS_BASE}-serviceStatusItem`}>
+          <div className={localStyles.serviceStatusItem}>
             {this._getIconForState(projectState.hasGcsBucket)}
             <span>Has GCS Bucket?</span>
           </div>
-          <div className={`${CSS_BASE}-serviceStatusItem`}>
+          <div className={localStyles.serviceStatusItem}>
             {this._getIconForState(projectState.hasCloudFunction)}
             <span>Has Cloud Function?</span>
           </div>
         </div>
-        <div>
-          {operationsPending ?
-            <CircularProgress size='18px' /> :
-            <button className={`${CSS_BASE}-button`}
-              onClick={this._onInitialize}>Initialize</button>
-          }
+        <div className={css.actionBar}>
+          <SubmitButton actionPending={operationsPending}
+            onClick={this._onInitialize} text='Initialize' />
         </div>
         {error && <p className='error'>{error}</p>}
         {operationsPending &&
@@ -83,11 +118,7 @@ export class Initializer extends React.Component<Props, State> {
   }
 
   private _getIconForState(enabled: boolean): JSX.Element {
-    return enabled ?
-      <Check fontSize='small' classes={{fontSizeSmall: 'smallIcon'}}
-        className={`${CSS_BASE}-greenCheck`} /> :
-      <Close fontSize='small' classes={{fontSizeSmall: 'smallIcon'}}
-        className={`${CSS_BASE}-redX`} />;
+    return enabled ? <GreenCheck /> : <RedClose />;
   }
 
   private async _onInitialize() {

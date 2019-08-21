@@ -64,7 +64,7 @@ describe('SchedulerForm', () => {
     const schedulerForm = shallow(<SchedulerForm {...mockProps} />);
     schedulerForm.find('TextInput[label="Run name"]')
       .simulate(CHANGE, 'test_immediate_job');
-    schedulerForm.find('button').simulate('click');
+    schedulerForm.find('SubmitButton').simulate('click');
     expect(schedulerForm
       .contains(<p>Uploading {notebookName} to {gcsPath}</p>)).toBe(true);
 
@@ -114,7 +114,7 @@ describe('SchedulerForm', () => {
       .simulate(CHANGE, 'recurring');
     schedulerForm.find('TextInput[label="Frequency"]')
       .simulate(CHANGE, '0 0 * * *');
-    schedulerForm.find('button').simulate('click');
+    schedulerForm.find('SubmitButton').simulate('click');
 
     await uploadNotebookPromise;
     await scheduleNotebookPromise;

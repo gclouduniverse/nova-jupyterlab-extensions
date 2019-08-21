@@ -1,11 +1,14 @@
 import {Widget} from '@phosphor/widgets';
+import {ReactElementWidget} from '@jupyterlab/apputils';
+import {INotebookModel} from '@jupyterlab/notebook';
 import * as React from 'react';
+import * as csstips from 'csstips';
+import {style} from 'typestyle';
 
 import {GcpService, ProjectState} from '../service/gcp';
-import {ReactElementWidget} from '@jupyterlab/apputils';
 import {Initializer} from './initializer';
-import {INotebookModel} from '@jupyterlab/notebook';
 import {SchedulerForm} from './scheduler_form';
+import {BASE_FONT, COLORS} from '../styles';
 
 /** Props definition including the GcpService for making backend calls. */
 export interface PropsWithGcpService {
@@ -21,7 +24,12 @@ interface State {
   projectState?: ProjectState;
 }
 
-export const CSS_BASE = 'jp-MainWidget';
+const mainClass = style({
+  backgroundColor: COLORS.white,
+  color: COLORS.base,
+  ...BASE_FONT,
+  ...csstips.vertical,
+});
 
 /**
  * Main React component to manage the state of the Scheduler Extension
@@ -41,8 +49,8 @@ export class MainWidget extends React.Component<MainProps, State> {
 
   render() {
     const {projectState} = this.state;
-    return (<div className={CSS_BASE}>
-      <main className={`${CSS_BASE}-main`}>
+    return (
+      <main className={mainClass}>
         {!projectState && <p>Validating project configuration...</p>}
         {projectState && projectState.ready &&
           <SchedulerForm {...this.props} />}
@@ -52,7 +60,7 @@ export class MainWidget extends React.Component<MainProps, State> {
             onStateChange={this._setProjectState} />
         }
       </main>
-    </div>);
+    );
   }
 
   private async _setProjectState() {

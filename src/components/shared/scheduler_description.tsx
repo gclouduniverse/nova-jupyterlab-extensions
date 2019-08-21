@@ -1,5 +1,7 @@
 import * as React from 'react';
+
 import {LearnMoreLink} from './learn_more_link';
+import {css} from '../../styles';
 
 const DESCRIPTION = `Schedule and run this Notebook from start to finish
 at the specified frequency. The executed Notebook will be saved to a
@@ -11,9 +13,8 @@ const LINK = 'https://cloud.google.com/ml-engine/docs/pricing';
 // tslint:disable-next-line:enforce-name-casing
 export function SchedulerDescription() {
   return (
-    <div>
-      <div>{DESCRIPTION}</div>
-      <LearnMoreLink href={LINK} />
-    </div>
+    <p className={css.noTopMargin}>
+      {DESCRIPTION}<LearnMoreLink href={LINK} />
+    </p>
   );
 }

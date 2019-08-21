@@ -80,7 +80,7 @@ describe('Initializer', () => {
 
     const initializer = shallow(<Initializer gcpService={mockGcpService}
       onStateChange={mockOnStateChange} projectState={mockProjectState} />);
-    initializer.find('button').simulate('click');
+    initializer.find('SubmitButton').simulate('click');
     expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(true);
 
     await enableServicesPromise;
@@ -118,7 +118,7 @@ describe('Initializer', () => {
 
     const initializer = shallow(<Initializer gcpService={mockGcpService}
       onStateChange={mockOnStateChange} projectState={mockProjectState} />);
-    initializer.find('button').simulate('click');
+    initializer.find('SubmitButton').simulate('click');
     expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(true);
 
     try {
@@ -155,7 +155,7 @@ describe('Initializer', () => {
 
     const initializer = shallow(<Initializer gcpService={mockGcpService}
       onStateChange={mockOnStateChange} projectState={mockProjectState} />);
-    initializer.find('button').simulate('click');
+    initializer.find('SubmitButton').simulate('click');
     expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>))
       .toBe(true);
     expect(initializer.contains(<p>Creating Cloud Function...</p>))
@@ -190,7 +190,7 @@ describe('Initializer', () => {
 
     const initializer = shallow(<Initializer gcpService={mockGcpService}
       onStateChange={mockOnStateChange} projectState={mockProjectState} />);
-    initializer.find('button').simulate('click');
+    initializer.find('SubmitButton').simulate('click');
     expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>))
       .toBe(true);
     try {
