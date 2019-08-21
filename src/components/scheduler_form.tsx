@@ -1,18 +1,31 @@
+import { INotebookModel } from '@jupyterlab/notebook';
 import * as React from 'react';
 
-import {SchedulerDescription} from './shared/scheduler_description';
-import {TextInput} from './shared/text_input';
-import {CheckboxInput} from './shared/checkbox_input';
-import {SelectInput} from './shared/select_input';
-import {SubmitButton} from './shared/submit_button';
 import {
-  CONTAINER_IMAGES, CUSTOM, MASTER_TYPES, Option, REGIONS, SCALE_TIERS,
-  SCHEDULE_TYPES, SINGLE
-} from '../data';
-import {MainProps} from './main';
-import {LearnMoreLink} from './shared/learn_more_link';
-import {RunNotebookRequest} from '../service/gcp';
-import {css} from '../styles';
+  CONTAINER_IMAGES,
+  CUSTOM,
+  MASTER_TYPES,
+  Option,
+  REGIONS,
+  SCALE_TIERS,
+  SCHEDULE_TYPES,
+  SINGLE
+  } from '../data';
+import { RunNotebookRequest } from '../service/gcp';
+import { css } from '../styles';
+import { CheckboxInput } from './shared/checkbox_input';
+import { LearnMoreLink } from './shared/learn_more_link';
+import { SchedulerDescription } from './shared/scheduler_description';
+import { SelectInput } from './shared/select_input';
+import { SubmitButton } from './shared/submit_button';
+import { TextInput } from './shared/text_input';
+import {PropsWithGcpService, OnDialogClose} from './dialog';
+
+interface Props extends PropsWithGcpService {
+  notebookName: string;
+  notebook: INotebookModel;
+  onDialogClose: OnDialogClose;
+}
 
 interface State {
   imageUri: string;
@@ -36,9 +49,9 @@ const SCALE_TIER_LINK =
   'https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers';
 
 /** Form Component to submit Scheduled Notebooks */
-export class SchedulerForm extends React.Component<MainProps, State> {
+export class SchedulerForm extends React.Component<Props, State> {
 
-  constructor(props: MainProps) {
+  constructor(props: Props) {
     super(props);
     this.state = {
       imageUri: String(CONTAINER_IMAGES[0].value),
@@ -100,7 +113,8 @@ export class SchedulerForm extends React.Component<MainProps, State> {
           </div>
         }
         <div className={css.actionBar}>
-          <button className={css.button}>Cancel</button>
+          <button className={css.button} onClick={this.props.onDialogClose}>
+            Cancel</button>
           <SubmitButton actionPending={submitPending} onClick={this._run}
             text='Submit' />
         </div>

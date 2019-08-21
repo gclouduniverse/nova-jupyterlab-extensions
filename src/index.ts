@@ -2,14 +2,13 @@
 import '../style/index.css';
 
 import {JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
-import {Dialog} from '@jupyterlab/apputils';
 import {ToolbarButton} from '@jupyterlab/apputils';
 import {DocumentRegistry} from '@jupyterlab/docregistry';
 import {INotebookModel, NotebookPanel} from '@jupyterlab/notebook';
 import {toArray} from '@phosphor/algorithm';
 import {DisposableDelegate, IDisposable} from '@phosphor/disposable';
 
-import {mainWidgetFactory} from './components/main';
+import {GcpSchedulerContext, GcpSchedulerWidget} from './components/widget';
 import {defaultGapiProvider, GcpService} from './service/gcp';
 
 /**
@@ -26,10 +25,8 @@ const buttonPlugin: JupyterLabPlugin<void> = {
  */
 export class ButtonExtension implements
     DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel> {
-  constructor(private gcpService: GcpService) {}
-  /**
-   * Create a new extension object.
-   */
+  constructor(private schedulerContext: GcpSchedulerContext) {}
+
   createNew(
       panel: NotebookPanel,
       context: DocumentRegistry.IContext<INotebookModel>): IDisposable {
@@ -39,14 +36,15 @@ export class ButtonExtension implements
           'jp-Icon jp-Icon-16 jp-ToolbarButtonComponent-icon jp-SchedulerIcon',
       tooltip: 'Schedule on GCP',
       onClick: () => {
-        const dialog = new Dialog({
-          title: 'Schedule Notebook on GCP',
-          buttons: [Dialog.cancelButton()],
-          body: mainWidgetFactory(this.gcpService, context.path, context.model),
-        });
-        dialog.launch();
+        // Update the context to the active Notebook
+        this.schedulerContext.value = {
+          notebookName: context.path,
+          notebook: context.model,
+          timestamp: Date.now(),
+        };
       }
     });
+
     // Find the index of spacer and insert after it
     const index =
         toArray(panel.toolbar.names()).findIndex((n) => n === 'spacer');
@@ -58,8 +56,13 @@ export class ButtonExtension implements
 function activateButton(app: JupyterLab) {
   console.log('Activating Scheduled Notebook Extension');
   const gcpService = new GcpService(defaultGapiProvider());
+  const schedulerContext = new GcpSchedulerContext();
+  const schedulerWidget = new GcpSchedulerWidget(gcpService, schedulerContext);
+  schedulerWidget.id = 'gcp-scheduler';
+  app.shell.addToBottomArea(schedulerWidget);
+
   app.docRegistry.addWidgetExtension(
-      'Notebook', new ButtonExtension(gcpService));
+      'Notebook', new ButtonExtension(schedulerContext));
 }
 
 /**
