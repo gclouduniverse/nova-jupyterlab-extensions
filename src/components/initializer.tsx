@@ -4,7 +4,7 @@ import {Check, Close} from '@material-ui/icons';
 import {withStyles} from '@material-ui/core';
 import {stylesheet} from 'typestyle';
 
-import {PropsWithGcpService} from './main';
+import {PropsWithGcpService, OnDialogClose} from './dialog';
 import {ProjectState} from '../service/gcp';
 import {css, COLORS} from '../styles';
 import {LearnMoreLink} from './shared/learn_more_link';
@@ -12,6 +12,7 @@ import {SubmitButton} from './shared/submit_button';
 
 interface Props extends PropsWithGcpService {
   projectState: ProjectState;
+  onDialogClose: OnDialogClose;
   onStateChange: () => void;
 }
 
@@ -102,6 +103,8 @@ export class Initializer extends React.Component<Props, State> {
           </div>
         </div>
         <div className={css.actionBar}>
+          <button className={css.button} onClick={this.props.onDialogClose}>
+            Close</button>
           <SubmitButton actionPending={operationsPending}
             onClick={this._onInitialize} text='Initialize' />
         </div>
