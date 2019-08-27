@@ -73,6 +73,8 @@ venv/
 lib/
 
 # Python package stuff
+build/
+dist/
 __pycache__
 *.egg-info
 .ipynb_checkpoints/

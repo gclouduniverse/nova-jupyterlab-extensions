@@ -1,7 +1,7 @@
 {
-  "name": "nova",
+  "name": "jupyterlab_gcpscheduler",
   "version": "0.3.1",
-  "description": "Jupyter Notebook submission to GCP",
+  "description": "GCP Notebooks Scheduler Extension",
   "keywords": [
     "jupyter",
     "jupyterlab",
@@ -11,8 +11,8 @@
   "bugs": {
     "url": "https://github.com/gclouduniverse/nova-jupyterlab-plugin/issues"
   },
-  "license": "BSD-3-Clause",
-  "author": "Abdalla Abdulmonem, Viacheslav Kovalevskyi",
+  "license": "MIT",
+  "author": "GCP AI Platform UI Team",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/*.css",

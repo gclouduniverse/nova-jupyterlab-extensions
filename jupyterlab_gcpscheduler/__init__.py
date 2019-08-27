@@ -1,12 +1,12 @@
 from notebook.utils import url_path_join
 
-from jupyterlab_nova.handlers import AuthHandler
+from jupyterlab_gcpscheduler.handlers import AuthHandler
 
 __version__ = '0.3.1'
 
 def _jupyter_server_extension_paths():
     return [{
-        'module': 'jupyterlab_nova'
+        'module': 'jupyterlab_gcpscheduler'
     }]
 
 def load_jupyter_server_extension(nb_server_app):

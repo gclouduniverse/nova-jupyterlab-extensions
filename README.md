@@ -15,9 +15,16 @@ Jupyter Notebook submission to GCP
 This should work on Google Cloud Deep Learning VM M19+.
 
 ```bash
+# Build the Python source distribution package
+python setup.py sdist
+
+# Copy the dist/jupyterlab_gcpscheduler-x.x.x.tar.gz archive to the JupyterLab
+# server and untar it
+
+# Install the Python package
 sudo pip3 install .
-sudo service jupyter restart
-sudo jupyter labextension install
+# Force Jupyter to rebuild the front-end packages
+sudo jupyter lab build
 ```
 
 ## Development

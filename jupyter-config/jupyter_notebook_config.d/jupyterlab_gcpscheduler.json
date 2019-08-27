@@ -1,7 +1,7 @@
 {
   "NotebookApp": {
     "nbserver_extensions": {
-      "jupyterlab_nova": true
+      "jupyterlab_gcpscheduler": true
     }
   }
 }

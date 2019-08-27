@@ -1,5 +1,6 @@
 const ACTIVE = 'ACTIVE';
-const CLOUD_FUNCTION_ARCHIVE = 'gs://prodonjs-kubeflow-dev/notebooks_cf.zip';
+const CLOUD_FUNCTION_ARCHIVE =
+    'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip';
 const CLOUD_FUNCTION_NAME = 'submitScheduledNotebook';
 const GAPI_URL = 'https://apis.google.com/js/api.js';
 const POLL_INTERVAL = 5000;

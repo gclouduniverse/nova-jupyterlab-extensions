@@ -503,7 +503,8 @@ describe('GcpService', () => {
           description: 'Submits a Notebook Job on AI Platform',
           entryPoint: 'submitScheduledNotebook',
           runtime: 'nodejs10',
-          sourceArchiveUrl: 'gs://prodonjs-kubeflow-dev/notebooks_cf.zip',
+          sourceArchiveUrl:
+              'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip',
           httpsTrigger: {},
         }
       });
@@ -541,7 +542,8 @@ describe('GcpService', () => {
           description: 'Submits a Notebook Job on AI Platform',
           entryPoint: 'submitScheduledNotebook',
           runtime: 'nodejs10',
-          sourceArchiveUrl: 'gs://prodonjs-kubeflow-dev/notebooks_cf.zip',
+          sourceArchiveUrl:
+              'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip',
           httpsTrigger: {},
         }
       });
