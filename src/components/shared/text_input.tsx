@@ -3,19 +3,22 @@ import {css} from '../../styles';
 
 interface TextInputProps {
   label?: string;
+  name?: string;
+  value?: string;
   placeholder?: string;
-  onChange?: (value: string) => void;
+  onChange?: (e: React.ChangeEvent<any>) => void;
 }
 
 /** Funtional Component for text input fields */
 // tslint:disable-next-line:enforce-name-casing
 export function TextInput(props: TextInputProps) {
-  const {onChange, label, placeholder} = props;
+  const {label, ...inputProps} = props;
   return (
     <div className={css.inputContainer}>
       {label && <label>{label}</label>}
-      <input className={css.input} placeholder={placeholder}
-        onChange={(e) => onChange && onChange(e.target.value)} />
+      <input
+        className={css.input}
+        {...inputProps} />
     </div>
   );
 }

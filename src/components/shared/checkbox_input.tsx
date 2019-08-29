@@ -2,17 +2,21 @@ import * as React from 'react';
 
 interface CheckboxInputProps {
   label?: string;
-  onChange?: (checked: boolean) => void;
+  name?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<any>) => void;
 }
 
 /** Funtional Component for Checkbox input fields */
 // tslint:disable-next-line:enforce-name-casing
 export function CheckboxInput(props: CheckboxInputProps) {
-  const {onChange, label} = props;
+  const {label, ...inputProps} = props;
   return (
     <div>
-      <input type="checkbox"
-        onChange={(e) => onChange && onChange(e.target.checked)} />
+      <input
+        type="checkbox"
+
+        {...inputProps} />
       {label && <span>{label}</span>}
     </div>
   );

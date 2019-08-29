@@ -1,45 +1,48 @@
-import { INotebookModel } from '@jupyterlab/notebook';
+import {INotebookModel} from '@jupyterlab/notebook';
 import * as React from 'react';
+import {withFormik, FormikProps, FormikBag} from 'formik';
 
 import {
   CONTAINER_IMAGES,
   CUSTOM,
   MASTER_TYPES,
-  Option,
   REGIONS,
   SCALE_TIERS,
   SCHEDULE_TYPES,
-  SINGLE
-  } from '../data';
-import { RunNotebookRequest } from '../service/gcp';
-import { css } from '../styles';
-import { CheckboxInput } from './shared/checkbox_input';
-import { LearnMoreLink } from './shared/learn_more_link';
-import { SchedulerDescription } from './shared/scheduler_description';
-import { SelectInput } from './shared/select_input';
-import { SubmitButton } from './shared/submit_button';
-import { TextInput } from './shared/text_input';
+  SINGLE,
+  Option,
+} from '../data';
+import {RunNotebookRequest} from '../service/gcp';
+import {css} from '../styles';
+import {CheckboxInput} from './shared/checkbox_input';
+import {LearnMoreLink} from './shared/learn_more_link';
+import {SchedulerDescription} from './shared/scheduler_description';
+import {SelectInput} from './shared/select_input';
+import {SubmitButton} from './shared/submit_button';
+import {TextInput} from './shared/text_input';
 import {PropsWithGcpService, OnDialogClose} from './dialog';
 
-interface Props extends PropsWithGcpService {
+export interface SchedulerFormProps extends PropsWithGcpService {
   notebookName: string;
   notebook: INotebookModel;
   onDialogClose: OnDialogClose;
 }
 
-interface State {
-  imageUri: string;
+interface SchedulerFormValues {
   jobId: string;
   region: string;
   scaleTier: string;
-  scaleTierOptions: Option[];
   masterType?: string;
-  masterTypeOptions: Option[];
+  imageUri: string;
+  scheduleType: string;
   schedule?: string;
-  shouldSubmitFiles: boolean;
-  shouldShowFrequency: boolean;
-  submitPending: boolean;
-  status?: string;
+  shouldSubmitFiles?: boolean;
+}
+
+interface EnhancedSchedulerFormProps extends SchedulerFormProps, FormikProps<SchedulerFormValues> {}
+
+interface SchedulerFormState {
+  masterTypesOptions: Option[];
 }
 
 const CHECKBOX_LABEL = 'Submit all the files in the with the notebook';
@@ -49,131 +52,166 @@ const SCALE_TIER_LINK =
   'https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers';
 
 /** Form Component to submit Scheduled Notebooks */
-export class SchedulerForm extends React.Component<Props, State> {
+export class SchedulerForm extends React.Component<EnhancedSchedulerFormProps, SchedulerFormState> {
 
-  constructor(props: Props) {
+  constructor(props: EnhancedSchedulerFormProps) {
     super(props);
-    this.state = {
-      imageUri: String(CONTAINER_IMAGES[0].value),
-      jobId: '',
-      region: String(REGIONS[0].value),
-      scaleTier: String(SCALE_TIERS[0].value),
-      scaleTierOptions: SCALE_TIERS,
-      masterTypeOptions: MASTER_TYPES,
-      schedule: '? 0 * * *',
-      shouldSubmitFiles: true,
-      shouldShowFrequency: false,
-      submitPending: false,
-    };
 
-    this.onScaleTierChanged = this.onScaleTierChanged.bind(this);
-    this._run = this._run.bind(this);
+    this.state = {
+      masterTypesOptions: MASTER_TYPES,
+    };
+  }
+
+  onScaleTierChanged = (e: React.ChangeEvent<any>) => {
+    const {handleChange, setFieldValue} = this.props;
+    setFieldValue('masterType', e.target.value !== CUSTOM ? '' : MASTER_TYPES[0].value);
+    handleChange(e)
   }
 
   render() {
-    const {scaleTier, scaleTierOptions, masterTypeOptions,
-      shouldShowFrequency, submitPending, status} = this.state;
+    const {values, submitForm, handleChange, isSubmitting, status} = this.props;
     return (
       <div>
         <SchedulerDescription />
         <p className={css.bold}>Notebook: {this.props.notebookName}</p>
 
-        <CheckboxInput label={CHECKBOX_LABEL}
-          onChange={(shouldSubmitFiles) => this.setState({shouldSubmitFiles})} />
-        <TextInput label="Run name"
-          onChange={(jobId) => this.setState({jobId})} />
-        <SelectInput label="Region"
-          options={REGIONS} onChange={(region) => this.setState({region})} />
-        <SelectInput label="Scale tier" options={scaleTierOptions}
+        <CheckboxInput
+          label={CHECKBOX_LABEL}
+          name="shouldSubmitFiles"
+          onChange={handleChange} />
+        <TextInput
+          label="Run name"
+          name="jobId"
+          value={values.jobId}
+          onChange={handleChange} />
+        <SelectInput
+          label="Region"
+          name="region"
+          value={values.region}
+          options={REGIONS}
+          onChange={handleChange} />
+        <SelectInput
+          label="Scale tier"
+          name="scaleTier"
+          value={values.scaleTier}
+          options={SCALE_TIERS}
           onChange={this.onScaleTierChanged} />
         <p className={css.noTopMargin}>
           A scale is a predefined cluster specification.
           <LearnMoreLink href={SCALE_TIER_LINK} />
         </p>
-        {scaleTier === CUSTOM &&
-          <SelectInput label="Machine type" options={masterTypeOptions}
-            onChange={(masterType) => this.setState({masterType})} />
+        {values.scaleTier === CUSTOM &&
+          <SelectInput
+            label="Machine type"
+            name="masterType"
+            value={values.masterType}
+            options={MASTER_TYPES}
+            onChange={handleChange} />
         }
-        <SelectInput label="Container" options={CONTAINER_IMAGES}
-          onChange={(imageUri) => this.setState({imageUri})} />
-        <SelectInput label="Type" options={SCHEDULE_TYPES}
-          onChange={(scheduleType) => this.setState({
-            shouldShowFrequency: scheduleType !== SINGLE
-          })} />
-        {shouldShowFrequency &&
+        <SelectInput
+          label="Container"
+          name="imageUri"
+          value={values.imageUri}
+          options={CONTAINER_IMAGES}
+          onChange={handleChange} />
+        <SelectInput
+          label="Type"
+          name="scheduleType"
+          value={values.scheduleType}
+          options={SCHEDULE_TYPES}
+          onChange={handleChange} />
+        {values.scheduleType !== SINGLE &&
           <div>
-            <TextInput label="Frequency"
-              onChange={(schedule) => this.setState({schedule})} />
+            <TextInput
+              label="Frequency"
+              name="schedule"
+              value={values.schedule}
+              onChange={handleChange} />
             <p className={css.noTopMargin}>
               Schedule is specified using unix-cron format. You can define a
-            schedule so that your job runs multiple times a day,
-            or runs on specific days and months.
+              schedule so that your job runs multiple times a day,
+              or runs on specific days and months.
               <LearnMoreLink href={SCHEDULE_LINK} />
             </p>
           </div>
         }
         <div className={css.actionBar}>
           <button className={css.button} onClick={this.props.onDialogClose}>
-            Cancel</button>
-          <SubmitButton actionPending={submitPending} onClick={this._run}
+            Cancel
+          </button>
+          <SubmitButton
+            actionPending={isSubmitting}
+            onClick={() => {
+              submitForm();
+            }}
             text='Submit' />
         </div>
-        {status && <p>{status}</p>}
+        {status && status.msg && <div>{status.msg}</div>}
       </div>
     );
   }
+}
 
-  onScaleTierChanged(scaleTier: string) {
-    this.setState({
-      scaleTier,
-      masterType: scaleTier !== CUSTOM ? '' : this.state.masterType
-    });
-  }
-
-  private async _run() {
-    const {gcpService, notebook} = this.props;
-    const request = this._buildRunNotebookRequest();
-
-    let status =
-      `Uploading ${this.props.notebookName} to ${request.inputNotebookGcsPath}`;
-    this.setState({status});
-    await gcpService.uploadNotebook(notebook.toString(),
-      request.inputNotebookGcsPath);
-
-    if (this.state.shouldShowFrequency && this.state.schedule) {
-      status = 'Submitting Job to Cloud Scheduler';
-      this.setState({status});
-      // TODO: Obtain Cloud Function URL and Service Account from settings
-      const job = await gcpService.scheduleNotebook(request,
-        'https://us-central1-prodonjs-kubeflow-dev.cloudfunctions.net/submitScheduledNotebook',
-        'prodonjs-kubeflow-dev@appspot.gserviceaccount.com',
-        this.state.schedule
-      );
-      status = `Successfully created ${job.name}`;
-    } else {
-      status = 'Submitting Job to AI Platform';
-      this.setState({status});
-      const job = await gcpService.runNotebook(request);
-      status = `Successfully created ${job.jobId}`;
+export const EnhancedSchedulerForm = withFormik<SchedulerFormProps, SchedulerFormValues>({
+  mapPropsToValues: () => (
+    {
+      jobId: '',
+      region: String(REGIONS[1].value),
+      scaleTier: String(SCALE_TIERS[0].value),
+      imageUri: String(CONTAINER_IMAGES[0].value),
+      scheduleType: SINGLE,
+      schedule: '',
     }
-    this.setState({status});
-  }
+  ),
+  handleSubmit: submit,
+})(SchedulerForm);
 
-  private _buildRunNotebookRequest(): RunNotebookRequest {
-    const {notebookName} = this.props;
-    const {jobId, imageUri, region, scaleTier, masterType} = this.state;
+async function submit(values: SchedulerFormValues, formikBag: FormikBag<SchedulerFormProps, SchedulerFormValues>) {
+  const {gcpService, notebook, notebookName} = formikBag.props;
+  const {setStatus, setSubmitting} = formikBag;
+  const request = await _buildRunNotebookRequest(values, formikBag);
 
-    // TODO: Obtain bucket from project settings stored during initialization
-    const inputNotebookGcsPath = `gs://prodonjs-kubeflow-dev/notebooks/${notebookName}`;
-    const outputNotebookGcsPath = inputNotebookGcsPath + '__out.ipynb';
-    return {
-      jobId,
-      imageUri,
-      inputNotebookGcsPath,
-      masterType,
-      outputNotebookGcsPath,
-      scaleTier,
-      region,
-    };
+  let status =
+    `Uploading ${notebookName} to ${request.inputNotebookGcsPath}`;
+  setStatus({msg: status});
+  await gcpService.uploadNotebook(notebook.toString(),
+    request.inputNotebookGcsPath);
+
+  if (values.scheduleType !== SINGLE && values.schedule) {
+    status = 'Submitting Job to Cloud Scheduler';
+    setStatus({msg: status});
+    // TODO: Obtain Cloud Function URL and Service Account from settings
+    const job = await gcpService.scheduleNotebook(request,
+      'https://us-central1-prodonjs-kubeflow-dev.cloudfunctions.net/submitScheduledNotebook',
+      'prodonjs-kubeflow-dev@appspot.gserviceaccount.com',
+      values.schedule
+    );
+    status = `Successfully created ${job.name}`;
+  } else {
+    status = 'Submitting Job to AI Platform';
+    setStatus({msg: status});
+    const job = await gcpService.runNotebook(request);
+    status = `Successfully created ${job.jobId}`;
   }
+  setStatus({msg: status});
+  setSubmitting(false);
+}
+
+async function _buildRunNotebookRequest(values: SchedulerFormValues, formikBag: FormikBag<SchedulerFormProps, SchedulerFormValues>): Promise<RunNotebookRequest> {
+  const {notebookName} = formikBag.props;
+  const {jobId, region, scaleTier, masterType, imageUri} = values;
+
+  // TODO: Obtain bucket from project settings stored during initialization
+  const inputNotebookGcsPath = `gs://prodonjs-kubeflow-dev/notebooks/${notebookName}`;
+  const outputNotebookGcsPath = inputNotebookGcsPath + '__out.ipynb';
+
+  return {
+    jobId,
+    imageUri,
+    inputNotebookGcsPath,
+    masterType: scaleTier !== CUSTOM ? '' : masterType,
+    outputNotebookGcsPath,
+    scaleTier,
+    region,
+  };
 }

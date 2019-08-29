@@ -115,6 +115,7 @@ export function defaultGapiProvider() {
 export class GcpService {
   private static readonly POST = 'POST';
   private static readonly AUTH_PATH = '/gcp/v1/auth';
+  private static readonly RUNTIME_ENV_PATH = '/gcp/v1/runtime';
   private static readonly AI_PLATFORM = 'https://ml.googleapis.com/v1';
   private static readonly CLOUD_FUNCTIONS =
       'https://cloudfunctions.googleapis.com/v1';
@@ -273,6 +274,7 @@ export class GcpService {
       serviceAccountEmail: string,
       schedule: string): Promise<CloudSchedulerJob> {
     let timeZone = 'America/New_York';
+
     try {
       timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     } catch (err) {
@@ -334,6 +336,15 @@ export class GcpService {
     }
   }
 
+  async getImageUri(): Promise<string> {
+    // TODO need to check if image exist
+    const imageUriPrefix = 'gcr.io/deeplearning-platform-release/';
+    const runtimeEnv = await this._getRuntimeEnv();
+    const lastDotIndex = runtimeEnv.lastIndexOf('.');
+    return imageUriPrefix + runtimeEnv.substr(0, lastDotIndex) + ':' +
+        runtimeEnv.substr(lastDotIndex + 1);
+  }
+
   /** Returns the status of the required services. */
   private async _getServiceStatuses(auth: AuthResponse):
       Promise<ServiceStatus[]> {
@@ -355,6 +366,16 @@ export class GcpService {
           }));
     } catch (err) {
       console.error('Unable to return GCP services');
+      throw err;
+    }
+  }
+
+  private async _getRuntimeEnv(): Promise<any> {
+    try {
+      const response = await fetch(GcpService.RUNTIME_ENV_PATH);
+      return await response.text();
+    } catch (err) {
+      console.error('Unable to obtain runtime environment');
       throw err;
     }
   }

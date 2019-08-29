@@ -1,12 +1,12 @@
-import { Dialog } from '@material-ui/core';
+import {Dialog} from '@material-ui/core';
 import * as csstips from 'csstips';
 import * as React from 'react';
 import {stylesheet} from 'typestyle';
 
-import { GcpService, ProjectState } from '../service/gcp';
-import { BASE_FONT, COLORS } from '../styles';
-import { Initializer } from './initializer';
-import { SchedulerForm } from './scheduler_form';
+import {GcpService, ProjectState} from '../service/gcp';
+import {BASE_FONT, COLORS} from '../styles';
+import {Initializer} from './initializer';
+import {EnhancedSchedulerForm} from './scheduler_form';
 import {INotebookModel} from '@jupyterlab/notebook';
 
 /** Information provided to the GcpSchedulerWidget */
@@ -87,7 +87,7 @@ export class SchedulerDialog extends React.Component<Props, State> {
           <p className={localStyles.header}>Schedule a notebook run</p>
           {!projectState && <p>Validating project configuration...</p>}
           {projectState && projectState.ready && hasNotebook &&
-            <SchedulerForm gcpService={gcpService}
+            <EnhancedSchedulerForm gcpService={gcpService}
               notebookName={request.notebookName}
               notebook={request.notebook}
               onDialogClose={this._onDialogClose} />}

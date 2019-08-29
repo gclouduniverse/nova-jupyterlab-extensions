@@ -154,50 +154,6 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
     }
   />
   <SelectInput
-    label="Container"
-    onChange={[Function]}
-    options={
-      Array [
-        Object {
-          "text": "Python",
-          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
-        },
-        Object {
-          "text": "PyTorch (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
-        },
-        Object {
-          "text": "PyTorch (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-      ]
-    }
-  />
-  <SelectInput
     label="Type"
     onChange={[Function]}
     options={
@@ -218,6 +174,7 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
   >
     <button
       className="button_f1o5na2b"
+      onClick={[MockFunction]}
     >
       Cancel
     </button>
@@ -328,50 +285,6 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
     />
   </p>
   <SelectInput
-    label="Container"
-    onChange={[Function]}
-    options={
-      Array [
-        Object {
-          "text": "Python",
-          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
-        },
-        Object {
-          "text": "PyTorch (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
-        },
-        Object {
-          "text": "PyTorch (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-      ]
-    }
-  />
-  <SelectInput
     label="Type"
     onChange={[Function]}
     options={
@@ -392,6 +305,7 @@ exports[`SchedulerForm Toggles Machine type visibility based on Scale tier: With
   >
     <button
       className="button_f1o5na2b"
+      onClick={[MockFunction]}
     >
       Cancel
     </button>
@@ -502,50 +416,6 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: With Sche
     />
   </p>
   <SelectInput
-    label="Container"
-    onChange={[Function]}
-    options={
-      Array [
-        Object {
-          "text": "Python",
-          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
-        },
-        Object {
-          "text": "PyTorch (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
-        },
-        Object {
-          "text": "PyTorch (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-      ]
-    }
-  />
-  <SelectInput
     label="Type"
     onChange={[Function]}
     options={
@@ -580,6 +450,7 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: With Sche
   >
     <button
       className="button_f1o5na2b"
+      onClick={[MockFunction]}
     >
       Cancel
     </button>
@@ -690,50 +561,6 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: Without S
     />
   </p>
   <SelectInput
-    label="Container"
-    onChange={[Function]}
-    options={
-      Array [
-        Object {
-          "text": "Python",
-          "value": "gcr.io/deeplearning-platform-release/base-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf-cpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 1.14 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-cpu:latest",
-        },
-        Object {
-          "text": "TensorFlow 2.0 (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/tf2-gpu:latest",
-        },
-        Object {
-          "text": "PyTorch (CPU only)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-cpu:latest",
-        },
-        Object {
-          "text": "PyTorch (GPU)",
-          "value": "gcr.io/deeplearning-platform-release/pytorch-gpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-        Object {
-          "text": "R (with r-essentials)",
-          "value": "gcr.io/deeplearning-platform-release/r-cpu:latest",
-        },
-      ]
-    }
-  />
-  <SelectInput
     label="Type"
     onChange={[Function]}
     options={
@@ -754,6 +581,7 @@ exports[`SchedulerForm Toggles Schedule visibility based on Frequency: Without S
   >
     <button
       className="button_f1o5na2b"
+      onClick={[MockFunction]}
     >
       Cancel
     </button>

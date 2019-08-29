@@ -4,6 +4,7 @@ from notebook.base.handlers import APIHandler, app_log
 from google.auth.exceptions import GoogleAuthError
 from google.auth.transport.requests import Request
 import google.auth
+import os
 
 SCOPE = ('https://www.googleapis.com/auth/cloud-platform',)
 
@@ -52,4 +53,18 @@ class MetadataHandler(APIHandler):
   def get(self):
     # TODO
     pass
+
+class RuntimeEnvHandler(APIHandler):
+  """Handler to obtain runtime environment"""
+
+  def get(self):
+    version = 'unknown'
+    try:
+        env_version = os.environ['ENV_VERSION_FILE_PATH']
+        with open(env_version) as f:
+            version = f.read().rstrip()
+        self.finish(version)
+    except (KeyError, OSError):
+        pass # Could do some logging in here
+
 
