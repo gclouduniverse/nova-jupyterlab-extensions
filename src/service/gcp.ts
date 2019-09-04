@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/camelcase */
-const ACTIVE = 'ACTIVE';
 const CLOUD_FUNCTION_ARCHIVE =
   'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip';
 const CLOUD_FUNCTION_NAME = 'submitScheduledNotebook';
 const GAPI_URL = 'https://apis.google.com/js/api.js';
 const POLL_INTERVAL = 5000;
+const SERVICE_ACCOUNT_DOMAIN = 'appspot.gserviceaccount.com';
 
 interface Service {
   endpoint: string;
@@ -23,13 +23,32 @@ interface Function {
   status: string;
 }
 
-interface ListFunctionsResponse {
-  functions?: Function[];
-}
-
 interface ServiceStatus {
   service: Service;
   enabled: boolean;
+}
+
+interface AppEngineApp {
+  id: string;
+  name: string;
+  locationId: string;
+}
+
+interface Location {
+  name: string;
+  locationId: string;
+}
+
+interface AppEngineLocation extends Location {
+  metadata: { standardEnvironmentAvailable?: boolean };
+}
+
+interface ListAppEngineLocationsResponse {
+  locations: AppEngineLocation[];
+}
+
+interface ListCloudSchedulerLocationsResponse {
+  locations: Location[];
 }
 
 /**
@@ -53,10 +72,10 @@ export interface CloudSchedulerJob {
 /** Project initialization state. */
 export interface ProjectState {
   allServicesEnabled: boolean;
+  schedulerRegion: string;
+  gcsBuckets: string[];
   hasCloudFunction: boolean;
-  hasGcsBucket: boolean;
   projectId: string;
-  ready: boolean;
   serviceStatuses: ServiceStatus[];
 }
 
@@ -120,6 +139,7 @@ export class GcpService {
   private static readonly AUTH_PATH = '/gcp/v1/auth';
   private static readonly RUNTIME_ENV_PATH = '/gcp/v1/runtime';
   private static readonly AI_PLATFORM = 'https://ml.googleapis.com/v1';
+  private static readonly APP_ENGINE = 'https://appengine.googleapis.com/v1';
   private static readonly CLOUD_FUNCTIONS =
     'https://cloudfunctions.googleapis.com/v1';
   private static readonly CLOUD_SCHEDULER =
@@ -129,33 +149,36 @@ export class GcpService {
 
   constructor(private gapiPromise: Promise<void>) {}
 
+  /**
+   * Retrieves all necessary details about the user's project to allow the
+   * extension to know whether or not Notebooks can be scheduled.
+   */
   async getProjectState(): Promise<ProjectState> {
     try {
       const auth = await this._getAuth();
       const state: ProjectState = {
         allServicesEnabled: false,
+        schedulerRegion: '',
+        gcsBuckets: [],
         hasCloudFunction: false,
-        hasGcsBucket: false,
         projectId: auth.project,
-        ready: false,
         serviceStatuses: [],
       };
 
       state.serviceStatuses = await this._getServiceStatuses(auth);
       state.allServicesEnabled = state.serviceStatuses.every(s => s.enabled);
-      const rejectHandler = () => false;
-      const [hasCloudFunction, hasGcsBucket] = await Promise.all([
-        this._hasCloudFunction(auth).catch(rejectHandler),
-        this._hasGcsBucket(auth).catch(rejectHandler),
+      const [appEngineLocation, gcsBuckets] = await Promise.all([
+        this._getCloudSchedulerLocation(auth).catch(() => ''),
+        this._getGcsBuckets(auth).catch(() => []),
       ]);
-      state.hasCloudFunction = hasCloudFunction;
-      state.hasGcsBucket = hasGcsBucket;
-
-      state.ready =
-        state.allServicesEnabled &&
-        state.hasCloudFunction &&
-        state.hasGcsBucket;
-
+      state.schedulerRegion = appEngineLocation;
+      state.gcsBuckets = gcsBuckets;
+      if (state.schedulerRegion) {
+        state.hasCloudFunction = await this._hasCloudFunction(
+          auth,
+          state.schedulerRegion
+        );
+      }
       return state;
     } catch (err) {
       console.log('Unable to determine project status');
@@ -187,6 +210,28 @@ export class GcpService {
       );
     } catch (err) {
       console.error('Unable to enable necessary GCP services');
+      throw err;
+    }
+  }
+
+  /**
+   * Creates a new AppEngine app in the specified region.
+   */
+  async createAppEngineApp(regionName: string): Promise<AppEngineApp> {
+    try {
+      const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
+      gapi.client.setToken({ access_token: auth.token });
+      const pendingOperation = await gapi.client.request<Operation>({
+        path: `${GcpService.APP_ENGINE}/apps`,
+        method: 'POST',
+        body: { id: auth.project, locationId: regionName },
+      });
+      const finishedOperation = await this._pollOperation(
+        `${GcpService.APP_ENGINE}/${pendingOperation.result.name}`
+      );
+      return finishedOperation.response as AppEngineApp;
+    } catch (err) {
+      console.error(`Unable to create App Engine app in ${regionName}`);
       throw err;
     }
   }
@@ -284,7 +329,6 @@ export class GcpService {
   async scheduleNotebook(
     request: RunNotebookRequest,
     regionName: string,
-    serviceAccountEmail: string,
     schedule: string
   ): Promise<CloudSchedulerJob> {
     let timeZone = 'America/New_York';
@@ -307,7 +351,9 @@ export class GcpService {
           body: btoa(JSON.stringify(this._buildAiPlatformJobRequest(request))),
           headers: { 'Content-Type': 'application/json' },
           httpMethod: 'POST',
-          oidcToken: { serviceAccountEmail },
+          oidcToken: {
+            serviceAccountEmail: `${auth.project}@${SERVICE_ACCOUNT_DOMAIN}`,
+          },
           uri: `https://${regionName}-${auth.project}.cloudfunctions.net/${CLOUD_FUNCTION_NAME}`,
         },
       };
@@ -361,6 +407,23 @@ export class GcpService {
     );
   }
 
+  /** Retrieves the list of regions where AppEngine can be deployed. */
+  async getAppEngineLocations(): Promise<AppEngineLocation[]> {
+    try {
+      const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
+      gapi.client.setToken({ access_token: auth.token });
+      const response = await gapi.client.request<
+        ListAppEngineLocationsResponse
+      >({
+        path: `${GcpService.APP_ENGINE}/apps/${auth.project}/locations`,
+      });
+      return response.result.locations || [];
+    } catch (err) {
+      console.error('Unable to retrieve AppEngine locations');
+      throw err;
+    }
+  }
+
   /** Returns the status of the required services. */
   private async _getServiceStatuses(
     auth: AuthResponse
@@ -393,12 +456,36 @@ export class GcpService {
       return await response.text();
     } catch (err) {
       console.error('Unable to obtain runtime environment');
+    }
+  }
+
+  /**
+   * Returns the region where the Cloud Scheduler is available, which
+   * corresponds to the AppEngine location if it has been created.
+   */
+  private async _getCloudSchedulerLocation(
+    auth: AuthResponse
+  ): Promise<string> {
+    try {
+      await this.gapiPromise;
+      gapi.client.setToken({ access_token: auth.token });
+      const response = await gapi.client.request<
+        ListCloudSchedulerLocationsResponse
+      >({
+        path: `${GcpService.CLOUD_SCHEDULER}/projects/${auth.project}/locations`,
+      });
+      if (response.result.locations && response.result.locations.length) {
+        return response.result.locations[0].locationId;
+      }
+      return '';
+    } catch (err) {
+      console.error('Could not determine Cloud Scheduler location');
       throw err;
     }
   }
 
-  /** Returns true if the project has at least one GCS bucket present. */
-  private async _hasGcsBucket(auth: AuthResponse): Promise<boolean> {
+  /** Returns the list of GCS Bucket names accessible with the credential. */
+  private async _getGcsBuckets(auth: AuthResponse): Promise<string[]> {
     try {
       await this.gapiPromise;
       gapi.client.setToken({ access_token: auth.token });
@@ -406,7 +493,7 @@ export class GcpService {
         path: '/storage/v1/b',
         params: { project: auth.project },
       });
-      return !!response.result.items && response.result.items.length > 0;
+      return (response.result.items || []).map(b => `gs://${b.name}`);
     } catch (err) {
       console.error('Unable to list GCS Buckets');
       throw err;
@@ -414,26 +501,23 @@ export class GcpService {
   }
 
   /**
-   * Returns true if the project has a function deployed with the suffix
-   * CLOUD_FUNCTION_NAME.
+   * Returns true if the project has the necessary Cloud Function deployed
+   * in the given region
    */
-  private async _hasCloudFunction(auth: AuthResponse): Promise<boolean> {
+  private async _hasCloudFunction(
+    auth: AuthResponse,
+    region: string
+  ): Promise<boolean> {
     try {
       await this.gapiPromise;
       gapi.client.setToken({ access_token: auth.token });
-      const response = await gapi.client.request<ListFunctionsResponse>({
-        path: `${GcpService.CLOUD_FUNCTIONS}/projects/${auth.project}/locations/-/functions`,
+      await gapi.client.request<Function>({
+        path: `${GcpService.CLOUD_FUNCTIONS}/projects/${auth.project}/locations/${region}/functions/${CLOUD_FUNCTION_NAME}`,
       });
-      if (!(response.result.functions && response.result.functions.length)) {
-        return false;
-      } else {
-        return !!response.result.functions.find(
-          f => f.name.endsWith(CLOUD_FUNCTION_NAME) && f.status === ACTIVE
-        );
-      }
+      return true;
     } catch (err) {
-      console.error('Unable to list Cloud Functions');
-      throw err;
+      console.error(`${CLOUD_FUNCTION_NAME} not found in ${region}`);
+      return false;
     }
   }
 
@@ -495,6 +579,7 @@ export class GcpService {
           request.outputNotebookGcsPath,
         ],
         masterConfig: { imageUri: request.imageUri },
+        masterType: request.masterType || undefined,
         region: request.region,
         scaleTier: request.scaleTier,
       },

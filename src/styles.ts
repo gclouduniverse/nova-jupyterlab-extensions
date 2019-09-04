@@ -4,12 +4,13 @@
  * https://github.com/jupyterlab/jupyterlab/blob/master/packages/theme-light-extension/style/variables.css
  */
 import * as csstips from 'csstips';
-import {cssRaw, stylesheet} from 'typestyle';
-import {CSSProperties} from 'typestyle/lib/types';
+import { cssRaw, stylesheet } from 'typestyle';
+import { CSSProperties } from 'typestyle/lib/types';
 
 // Imports Roboto 400 and 500 weight
 cssRaw(
-    `@import url('https://fonts.googleapis.com/css?family=Roboto:400,500');`);
+  `@import url('https://fonts.googleapis.com/css?family=Roboto:400,500');`
+);
 const ROBOTO_FONT = '"Roboto", "Helvetica Neue", sans-serif';
 
 /** Theme colors. */
@@ -27,12 +28,13 @@ export const COLORS = {
 export const BASE_FONT: CSSProperties = {
   color: COLORS.base,
   fontFamily: ROBOTO_FONT,
-  fontSize: 'var(--jp-ui-font-size1, 13px)'
+  fontSize: 'var(--jp-ui-font-size1, 13px)',
 };
 
 /** Global styles that are useful across components */
 export const css = stylesheet({
   actionBar: {
+    paddingTop: '16px',
     paddingRight: '2px',
     ...csstips.horizontal,
     ...csstips.endJustified,
@@ -69,8 +71,8 @@ export const css = stylesheet({
     $nest: {
       '&.error': {
         borderColor: 'red',
-      }
-    }
+      },
+    },
   },
   link: {
     color: COLORS.link,
@@ -84,8 +86,8 @@ export const css = stylesheet({
       },
       '&:visited': {
         color: COLORS.link,
-      }
-    }
+      },
+    },
   },
   submitButton: {
     backgroundColor: '#1a73e8',
@@ -98,11 +100,17 @@ export const css = stylesheet({
       '&:hover': {
         cursor: 'pointer',
       },
-      '&:disabled:hover': {cursor: 'default'},
-    }
+      '&:disabled:hover': { cursor: 'default' },
+    },
   },
-  noTopMargin: {marginTop: 0},
+  noTopMargin: { marginTop: 0 },
   errorMessage: {
     color: 'red',
+  },
+  submitButtonDisabled: {
+    backgroundColor: 'var(--md-grey-300, #e0e0e0)',
+    color: 'var(--md-grey-500, #9e9e9e)',
+    cursor: 'not-allowed',
+    marginLeft: '16px',
   },
 });

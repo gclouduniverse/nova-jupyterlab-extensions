@@ -7,7 +7,7 @@ import { stylesheet } from 'typestyle';
 
 import { GcpService } from '../service/gcp';
 import { BASE_FONT, COLORS } from '../styles';
-import { Initializer } from './initializer';
+import { Initializer } from './initialization/initializer';
 import { SchedulerForm } from './scheduler_form';
 
 /** Information provided to the GcpSchedulerWidget */
@@ -30,7 +30,6 @@ export interface GcpSettings {
   projectId: string;
   gcsBucket: string;
   schedulerRegion: string;
-  serviceAccount: string;
   oAuthClientId?: string;
   oAuthClientSecret?: string;
 }
@@ -135,8 +134,7 @@ export class SchedulerDialog extends React.Component<Props, State> {
     const canSchedule = !!(
       settings.projectId &&
       settings.gcsBucket &&
-      settings.schedulerRegion &&
-      settings.serviceAccount
+      settings.schedulerRegion
     );
 
     this.setState({ gcpSettings: settings, canSchedule });

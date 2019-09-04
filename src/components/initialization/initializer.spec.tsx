@@ -2,7 +2,7 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 
 import { Initializer } from './initializer';
-import { GcpService, ProjectState } from '../service/gcp';
+import { GcpService, ProjectState } from '../../service/gcp';
 import { ISettingRegistry } from '@jupyterlab/coreutils';
 
 describe('Initializer', () => {

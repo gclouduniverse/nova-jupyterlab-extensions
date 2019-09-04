@@ -21,11 +21,6 @@
       "title": "Cloud Scheduler region",
       "description": "Region where the AppEngine app is deployed for the projectId (https://cloud.google.com/scheduler/docs/#supported_regions)"
     },
-    "serviceAccount": {
-      "type": "string",
-      "title": "Service account name",
-      "description": "Name of the service account to use when making requests from Cloud Scheduler"
-    },
     "oAuthClientId": {
       "type": "string",
       "title": "OAuth 2.0 client ID",
