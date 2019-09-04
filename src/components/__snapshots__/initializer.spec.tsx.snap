@@ -1,0 +1,117 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Initializer Shows message while retrieving project state: Shows initialization form 1`] = `
+<div
+  className="column_fghohlb"
+>
+  <p>
+    In order to schedule Notebook runs, the following APIs must be enabled, a Cloud Storage Bucket must be available, and a Cloud Function used by the Scheduler must be deployed in your project. These services may incur additional charges when used. By clicking 
+    <em>
+      Initialize
+    </em>
+    , you are agreeing to the terms of service for the various APIs and charges in use.
+  </p>
+  <div
+    className="serviceStatuses_fk872kw"
+  >
+    <div
+      className="serviceStatusItem_f13q4jm3"
+      key="compute.googleapis.com"
+    >
+      <WithStyles(pure(CloseIcon)) />
+      <LearnMoreLink
+        href="https://cloud.google.com/compute/"
+        text="Compute Engine API"
+      />
+    </div>
+    <div
+      className="serviceStatusItem_f13q4jm3"
+      key="storage-api.googleapis.com"
+    >
+      <WithStyles(pure(CloseIcon)) />
+      <LearnMoreLink
+        href="https://cloud.google.com/storage/"
+        text="Cloud Storage API"
+      />
+    </div>
+    <div
+      className="serviceStatusItem_f13q4jm3"
+      key="cloudscheduler.googleapis.com"
+    >
+      <WithStyles(pure(CloseIcon)) />
+      <LearnMoreLink
+        href="https://cloud.google.com/scheduler"
+        text="Cloud Scheduler API"
+      />
+    </div>
+    <div
+      className="serviceStatusItem_f13q4jm3"
+      key="ml.googleapis.com"
+    >
+      <WithStyles(pure(CloseIcon)) />
+      <LearnMoreLink
+        href="https://cloud.google.com/ai-platform/"
+        text="AI Platform Training API"
+      />
+    </div>
+    <div
+      className="serviceStatusItem_f13q4jm3"
+      key="cloudfunctions.googleapis.com"
+    >
+      <WithStyles(pure(CloseIcon)) />
+      <LearnMoreLink
+        href="https://cloud.google.com/functions/"
+        text="Cloud Functions API"
+      />
+    </div>
+    <div
+      className="serviceStatusItem_f13q4jm3"
+    >
+      <WithStyles(pure(CloseIcon)) />
+      <span>
+        Has GCS Bucket?
+      </span>
+    </div>
+    <div
+      className="serviceStatusItem_f13q4jm3"
+    >
+      <WithStyles(pure(CloseIcon)) />
+      <span>
+        Has Cloud Function?
+      </span>
+    </div>
+  </div>
+  <div
+    className="actionBar_fe1jzmp"
+  >
+    <button
+      className="button_f1o5na2b"
+      onClick={[MockFunction]}
+    >
+      Close
+    </button>
+    <SubmitButton
+      actionPending={false}
+      onClick={[Function]}
+      text="Initialize"
+    />
+  </div>
+</div>
+`;
+
+exports[`Initializer Shows message while retrieving project state: Validating project configuration 1`] = `
+<div
+  className="column_fghohlb"
+>
+  <p>
+    In order to schedule Notebook runs, the following APIs must be enabled, a Cloud Storage Bucket must be available, and a Cloud Function used by the Scheduler must be deployed in your project. These services may incur additional charges when used. By clicking 
+    <em>
+      Initialize
+    </em>
+    , you are agreeing to the terms of service for the various APIs and charges in use.
+  </p>
+  <p>
+    Validating project configuration...
+  </p>
+</div>
+`;

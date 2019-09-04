@@ -7,7 +7,7 @@ interface SelectInputProps {
   name?: string;
   value?: string;
   options?: Option[];
-  onChange?: (e: React.ChangeEvent<any>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
 /** Funtional Component for select fields */
@@ -17,7 +17,7 @@ export function SelectInput(props: SelectInputProps) {
   return (
     <div className={css.inputContainer}>
       {label && <label>{label}</label>}
-      <select className={css.input} {...inputProps} >
+      <select className={css.input} {...inputProps}>
         {options && options.map((o, i) =>
           <option key={i} value={o.value}>{o.text}</option>
         )}

@@ -4,7 +4,7 @@ interface CheckboxInputProps {
   label?: string;
   name?: string;
   value?: string;
-  onChange?: (e: React.ChangeEvent<any>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /** Funtional Component for Checkbox input fields */
@@ -13,10 +13,7 @@ export function CheckboxInput(props: CheckboxInputProps) {
   const {label, ...inputProps} = props;
   return (
     <div>
-      <input
-        type="checkbox"
-
-        {...inputProps} />
+      <input type="checkbox" {...inputProps} />
       {label && <span>{label}</span>}
     </div>
   );

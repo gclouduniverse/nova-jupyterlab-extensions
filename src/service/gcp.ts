@@ -266,11 +266,12 @@ export class GcpService {
    * Submits a Notebook for recurring scheduled execution on AI Platform via a
    * new Cloud Scheduler job.
    * @param request
-   * @param cloudFunctionUrl
+   * @param regionName
    * @param serviceAccountEmail
+   * @param schedule
    */
   async scheduleNotebook(
-      request: RunNotebookRequest, cloudFunctionUrl: string,
+      request: RunNotebookRequest, regionName: string,
       serviceAccountEmail: string,
       schedule: string): Promise<CloudSchedulerJob> {
     let timeZone = 'America/New_York';
@@ -283,11 +284,8 @@ export class GcpService {
     try {
       const [auth] = await Promise.all([this._getAuth(), this.gapiPromise]);
       gapi.client.setToken({access_token: auth.token});
-      // TODO: Region needs to match the location of the AppEngine project,
-      // not the AI Platform request
-      // https://cloud.google.com/scheduler/docs/
       const locationPrefix =
-          `projects/${auth.project}/locations/${request.region}/jobs`;
+          `projects/${auth.project}/locations/${regionName}/jobs`;
       const requestBody: CloudSchedulerJob = {
         name: `${locationPrefix}/${request.jobId}`,
         description: 'Scheduled Notebook',
@@ -298,7 +296,8 @@ export class GcpService {
           headers: {'Content-Type': 'application/json'},
           httpMethod: 'POST',
           oidcToken: {serviceAccountEmail},
-          uri: cloudFunctionUrl,
+          uri: `https://${regionName}-${auth.project}.cloudfunctions.net/${
+              CLOUD_FUNCTION_NAME}`,
         }
       };
       const response = await gapi.client.request<CloudSchedulerJob>({

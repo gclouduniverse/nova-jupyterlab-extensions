@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "jupyter.lab.setting-icon-class": "jp-SchedulerIcon",
+  "jupyter.lab.setting-icon-label": "GCP Scheduler",
+  "title": "JupyterLab GCP Notebook Scheduler",
+  "description": "JupyterLab GCP Notebook Scheduler Plugin Settings Schema",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "title": "Google Cloud project identifier",
+      "description": "Google Cloud project identifier"
+    },
+    "gcsBucket": {
+      "type": "string",
+      "title": "GCS Bucket path",
+      "description": "Top-level GCS Bucket path where Notebooks will be written to"
+    },
+    "schedulerRegion": {
+      "type": "string",
+      "title": "Cloud Scheduler region",
+      "description": "Region where the AppEngine app is deployed for the projectId (https://cloud.google.com/scheduler/docs/#supported_regions)"
+    },
+    "serviceAccount": {
+      "type": "string",
+      "title": "Service account name",
+      "description": "Name of the service account to use when making requests from Cloud Scheduler"
+    },
+    "oAuthClientId": {
+      "type": "string",
+      "title": "OAuth 2.0 client ID",
+      "description": "OAuth 2.0 Client ID for authenticating end-users for API requests"
+    },
+    "oAuthClientSecret": {
+      "type": "string",
+      "title": "OAuth 2.0 client secret",
+      "description": "OAuth 2.0 Client secret for authenticating end-users for API requests"
+    }
+  }
+}

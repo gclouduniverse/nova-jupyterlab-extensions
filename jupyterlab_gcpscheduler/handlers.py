@@ -7,7 +7,7 @@ import google.auth
 import os
 
 SCOPE = ('https://www.googleapis.com/auth/cloud-platform',)
-
+FRAMEWORK_ENV_VAR = 'ENV_VERSION_FILE_PATH'
 
 class AuthProvider:
   """Provider for GCP authentication credential."""
@@ -40,19 +40,11 @@ class AuthHandler(APIHandler):
   def get(self):
     """Returns the Authorization: Bearer token from the server's Credential."""
     try:
-     self.finish(AuthProvider.get().to_dict())
+      self.finish(AuthProvider.get().to_dict())
     except GoogleAuthError:
       msg = 'Unable to obtain Google Cloud Authorization'
       app_log.exception(msg)
       self.set_status(403, msg)
-
-
-class MetadataHandler(APIHandler):
-  """Handler to serve as a proxy obtain Project and Compute Metadata."""
-
-  def get(self):
-    # TODO
-    pass
 
 class RuntimeEnvHandler(APIHandler):
   """Handler to obtain runtime environment"""
@@ -60,11 +52,14 @@ class RuntimeEnvHandler(APIHandler):
   def get(self):
     version = 'unknown'
     try:
-        env_version = os.environ['ENV_VERSION_FILE_PATH']
-        with open(env_version) as f:
-            version = f.read().rstrip()
-        self.finish(version)
-    except (KeyError, OSError):
-        pass # Could do some logging in here
-
-
+      env_version = os.environ[FRAMEWORK_ENV_VAR]
+      with open(env_version) as f:
+        version = f.read().rstrip()
+      self.finish(version)
+    except KeyError:
+      app_log.warning(
+        'Environment variable {} is not set'.format(FRAMEWORK_ENV_VAR))
+    except OSError:
+      app_log.warning('Unable to read framework version from {}'.format(
+        os.environ[FRAMEWORK_ENV_VAR]
+      ))

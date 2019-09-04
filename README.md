@@ -35,8 +35,9 @@ For a development install (requires npm version 4 or later), do the following in
 # Create a Python 3 virtualenv and install jupyterlab and the project in edit mode
 virtualenv -p python3 venv
 source venv/bin/activate
-pip install jupyterlab
-pip install -e
+# Install the version of jupyterlab used by DLVM images
+pip install jupyterlab==0.35.0
+pip install -e .
 
 # Install the npm package and the extension
 npm install

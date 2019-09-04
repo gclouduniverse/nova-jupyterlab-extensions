@@ -1,35 +1,53 @@
-import * as React from 'react';
-import {shallow} from 'enzyme';
-
-import {GcpService, RunNotebookRequest} from '../service/gcp';
-import {SchedulerForm, SchedulerFormProps} from './scheduler_form';
-import {CUSTOM} from '../data';
 import {INotebookModel} from '@jupyterlab/notebook';
+import {mount, ReactWrapper} from 'enzyme';
+import * as React from 'react';
 
-const CHANGE = 'change';
+import {CUSTOM, RECURRING, CONTAINER_IMAGES} from '../data';
+import {GcpService, RunNotebookRequest} from '../service/gcp';
+import {SchedulerForm} from './scheduler_form';
+
+// Simulates a form input change
+function simulateFieldChange(wrapper: ReactWrapper,
+  selector: string, name: string, value: string) {
+  wrapper.find(selector)
+    .simulate('change', {
+      persist: () => {},
+      target: {name, value}
+    });
+}
+
+// Immediate promise that can be awaited
+function immediatePromise(): Promise<void> {
+  return new Promise((r) => setTimeout(r));
+}
 
 describe('SchedulerForm', () => {
   const notebookName = 'Test Notebook.ipynb';
   const notebookContents = '{"notebook": "test"}';
-  const gcsPath = `gs://prodonjs-kubeflow-dev/notebooks/${notebookName}`;
 
   const mockUploadNotebook = jest.fn();
   const mockRunNotebook = jest.fn();
   const mockScheduleNotebook = jest.fn();
-  const mockGetImageUri = jest.fn();
+  const mockNotebookContents = jest.fn();
   const mockDialogClose = jest.fn();
   const mockGcpService = {
     uploadNotebook: mockUploadNotebook,
     runNotebook: mockRunNotebook,
-    scheduleNotebook: mockScheduleNotebook,
-    getImageUri: mockGetImageUri,
+    scheduleNotebook: mockScheduleNotebook
   } as undefined as GcpService;
-  const mockNotebookContents = jest.fn();
-  const mockProps: SchedulerFormProps = {
+  const mockNotebook = {
+    toString: mockNotebookContents
+  } as unknown as INotebookModel;
+
+  const mockProps = {
     gcpService: mockGcpService,
-    notebook: {
-      toString: mockNotebookContents
-    } as unknown as INotebookModel,
+    gcpSettings: {
+      projectId: 'test-project',
+      gcsBucket: 'gs://test-project/notebooks',
+      schedulerRegion: 'us-east1',
+      serviceAccount: 'test-project@appspot.gserviceaccount.com',
+    },
+    notebook: mockNotebook,
     notebookName,
     onDialogClose: mockDialogClose,
   };
@@ -39,123 +57,110 @@ describe('SchedulerForm', () => {
   });
 
   it('Toggles Machine type visibility based on Scale tier', async () => {
-    const schedulerForm = shallow(<SchedulerForm {...mockProps} />);
-    expect(schedulerForm).toMatchSnapshot('Without MachineTypes');
-    schedulerForm.find('SelectInput[label="Scale tier"]')
-      .simulate(CHANGE, CUSTOM);
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    expect(schedulerForm.find('select[name="masterType"]')).toHaveLength(0);
 
-    expect(schedulerForm).toMatchSnapshot('With MachineTypes');
+    simulateFieldChange(schedulerForm, 'select[name="scaleTier"]',
+      'scaleTier', CUSTOM);
+
+    expect(schedulerForm.find('select[name="masterType"]')).toHaveLength(1);
   });
 
   it('Toggles Schedule visibility based on Frequency', async () => {
-    const schedulerForm = shallow(<SchedulerForm {...mockProps} />);
-    expect(schedulerForm).toMatchSnapshot('Without Schedule');
 
-    schedulerForm.find('SelectInput[label="Type"]')
-      .simulate(CHANGE, 'recurring');
-    expect(schedulerForm).toMatchSnapshot('With Schedule');
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    expect(schedulerForm.find('input[name="schedule"]')).toHaveLength(0);
+
+    simulateFieldChange(schedulerForm, 'select[name="scheduleType"]',
+      'scheduleType', RECURRING);
+
+    expect(schedulerForm.find('input[name="schedule"]')).toHaveLength(1);
   });
 
+
   it('Submits an immediate job to AI Platform', async () => {
+    const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
     const uploadNotebookPromise = Promise.resolve();
     const runNotebookPromise = Promise.resolve({jobId: 'aiplatform_job_1'});
-    const imageUriPromise = Promise.resolve('gcr.io/deeplearning-platform-release/base-cpu:latest');
-    const aiPlatformRequest: RunNotebookRequest = {
-      jobId: 'test_immediate_job',
-      imageUri: 'gcr.io/deeplearning-platform-release/base-cpu:latest',
-      inputNotebookGcsPath: gcsPath,
-      masterType: undefined,
-      outputNotebookGcsPath: `${gcsPath}__out.ipynb`,
-      scaleTier: 'BASIC',
-      region: 'us-central1',
-    };
 
     mockNotebookContents.mockReturnValue(notebookContents);
     mockUploadNotebook.mockReturnValue(uploadNotebookPromise);
     mockRunNotebook.mockReturnValue(runNotebookPromise);
-    mockGetImageUri.mockReturnValue(imageUriPromise);
 
-    const schedulerForm = shallow(<SchedulerForm {...mockProps} />);
-    schedulerForm.find('TextInput[label="Run name"]')
-      .simulate(CHANGE, 'test_immediate_job');
-    schedulerForm.find('SubmitButton').simulate('click');
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
 
-    setTimeout(() => {
-      expect(schedulerForm
-        .contains(<p>Uploading {notebookName} to {gcsPath}</p>)).toBe(true);
-    }, 0)
+    simulateFieldChange(schedulerForm, 'input[name="jobId"]',
+      'jobId', 'test_immediate_job');
 
-    await uploadNotebookPromise;
+    // Submit the form and wait for an immediate promise to flush other promises
+    schedulerForm.find('SubmitButton button').simulate('click');
+    await immediatePromise();
 
-    setTimeout(() => {
-      expect(schedulerForm
-        .contains(<p>Submitting Job to AI Platform</p>)).toBe(true);
-    }, 0)
+    schedulerForm.update();
 
-    await runNotebookPromise;
-
-    setTimeout(() => {
-      expect(schedulerForm
-        .contains(<p>Successfully created aiplatform_job_1</p>)).toBe(true);
-    }, 0)
-
+    expect(schedulerForm
+      .contains(<p>Successfully created aiplatform_job_1</p>)).toBe(true);
     expect(mockGcpService.uploadNotebook)
       .toHaveBeenCalledWith(notebookContents, gcsPath);
-
-    //TODO figure why we need setTimeout for this one
-    setTimeout(() => {
-      expect(mockGcpService.runNotebook).toHaveBeenCalledWith(aiPlatformRequest);
-    }, 0)
+    const aiPlatformRequest: RunNotebookRequest = {
+      jobId: 'test_immediate_job',
+      imageUri: 'gcr.io/deeplearning-platform-release/base-cpu:latest',
+      inputNotebookGcsPath: gcsPath,
+      masterType: '',
+      outputNotebookGcsPath: `${gcsPath}__out.ipynb`,
+      scaleTier: 'BASIC',
+      region: 'us-central1',
+    };
+    expect(mockGcpService.runNotebook).toHaveBeenCalledWith(aiPlatformRequest);
   });
 
   it('Submits a scheduled job to Cloud Scheduler', async () => {
+    const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
     const uploadNotebookPromise = Promise.resolve();
     const scheduleNotebookPromise = Promise.resolve(
       {name: 'cloudscheduler_job_1'});
-    const imageUriPromise = Promise.resolve('gcr.io/deeplearning-platform-release/base-cpu:latest');
+
+    mockNotebookContents.mockReturnValue(notebookContents);
+    mockUploadNotebook.mockReturnValue(uploadNotebookPromise);
+    mockScheduleNotebook.mockReturnValue(scheduleNotebookPromise);
+
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    simulateFieldChange(schedulerForm, 'input[name="jobId"]',
+      'jobId', 'test_scheduled_job');
+    simulateFieldChange(schedulerForm, 'select[name="region"]',
+      'region', 'us-east1');
+    simulateFieldChange(schedulerForm, 'select[name="scaleTier"]',
+      'scaleTier', CUSTOM);
+    simulateFieldChange(schedulerForm, 'select[name="masterType"]',
+      'masterType', 'complex_model_m_gpu');
+    simulateFieldChange(schedulerForm, 'select[name="imageUri"]',
+      'imageUri', String(CONTAINER_IMAGES[2].value));
+    simulateFieldChange(schedulerForm, 'select[name="scheduleType"]',
+      'scheduleType', RECURRING);
+    simulateFieldChange(schedulerForm, 'input[name="schedule"]',
+      'schedule', '0 0 * * *');
+    // Submit the form and wait for an immediate promise to flush other promises
+    schedulerForm.find('SubmitButton button').simulate('click');
+    await immediatePromise();
+
+    schedulerForm.update();
+
+    expect(schedulerForm
+      .contains(<p>Successfully created cloudscheduler_job_1</p>)).toBe(true);
+    expect(mockGcpService.uploadNotebook)
+      .toHaveBeenCalledWith(notebookContents, gcsPath);
     const aiPlatformRequest: RunNotebookRequest = {
       jobId: 'test_scheduled_job',
-      imageUri: 'gcr.io/deeplearning-platform-release/base-cpu:latest',
+      imageUri: 'gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest',
       inputNotebookGcsPath: gcsPath,
       masterType: 'complex_model_m_gpu',
       outputNotebookGcsPath: `${gcsPath}__out.ipynb`,
       scaleTier: 'CUSTOM',
       region: 'us-east1',
     };
-
-    mockNotebookContents.mockReturnValue(notebookContents);
-    mockUploadNotebook.mockReturnValue(uploadNotebookPromise);
-    mockScheduleNotebook.mockReturnValue(scheduleNotebookPromise);
-    mockGetImageUri.mockReturnValue(imageUriPromise);
-
-    const schedulerForm = shallow(<SchedulerForm {...mockProps} />);
-    schedulerForm.find('TextInput[label="Run name"]')
-      .simulate(CHANGE, 'test_scheduled_job');
-    schedulerForm.find('SelectInput[label="Region"]')
-      .simulate(CHANGE, 'us-east1');
-    schedulerForm.find('SelectInput[label="Scale tier"]')
-      .simulate(CHANGE, CUSTOM);
-    schedulerForm.find('SelectInput[label="Machine type"]')
-      .simulate(CHANGE, 'complex_model_m_gpu');
-    schedulerForm.find('SelectInput[label="Type"]')
-      .simulate(CHANGE, 'recurring');
-    schedulerForm.find('TextInput[label="Frequency"]')
-      .simulate(CHANGE, '0 0 * * *');
-    schedulerForm.find('SubmitButton').simulate('click');
-
-    await uploadNotebookPromise;
-    await scheduleNotebookPromise;
-
-    expect(mockGcpService.uploadNotebook)
-      .toHaveBeenCalledWith(notebookContents, gcsPath);
-
-    //TODO figure why we need setTimeout for this one
-    setTimeout(() => {
-      expect(mockGcpService.scheduleNotebook).toHaveBeenCalledWith(
-        aiPlatformRequest,
-        'https://us-central1-prodonjs-kubeflow-dev.cloudfunctions.net/submitScheduledNotebook',
-        'prodonjs-kubeflow-dev@appspot.gserviceaccount.com', '0 0 * * *');
-    }, 0)
-
+    expect(mockGcpService.scheduleNotebook).toHaveBeenCalledWith(
+      aiPlatformRequest,
+      'us-east1',
+      'test-project@appspot.gserviceaccount.com', '0 0 * * *');
   });
 });

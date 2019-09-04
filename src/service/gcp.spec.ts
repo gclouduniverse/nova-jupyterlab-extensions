@@ -626,13 +626,13 @@ describe('GcpService', () => {
       };
       gapiRequestMock.mockResolvedValue({result: returnedJob});
 
-      const cloudFunctionUrl =
+      const expectedCloudFunctionUrl =
           'https://us-central1-test-project.cloudfunctions.net/submitScheduledNotebook';
       const serviceAccountEmail = 'test-project@appspot.gserviceaccount.com';
       const schedule = '0 1 * * 5';
 
       const job = await gcpService.scheduleNotebook(
-          runNotebookRequest, cloudFunctionUrl, serviceAccountEmail, schedule);
+          runNotebookRequest, 'us-central1', serviceAccountEmail, schedule);
 
       expect(gapi.client.request).toHaveBeenCalledWith({
         body: {
@@ -642,16 +642,16 @@ describe('GcpService', () => {
             headers: {'Content-Type': 'application/json'},
             httpMethod: 'POST',
             oidcToken: {serviceAccountEmail},
-            uri: cloudFunctionUrl
+            uri: expectedCloudFunctionUrl
           },
-          name: `projects/test-project/locations/us-east1/jobs/${
+          name: `projects/test-project/locations/us-central1/jobs/${
               runNotebookRequest.jobId}`,
           schedule,
           timeZone: 'America/New_York'
         },
         method: 'POST',
         path:
-            'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations/us-east1/jobs'
+            'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations/us-central1/jobs'
       });
       expect(job).toEqual(returnedJob);
     });
@@ -660,16 +660,15 @@ describe('GcpService', () => {
       const error = {error: 'Could not create Cloud Scheduler Job'};
       gapiRequestMock.mockRejectedValue(error);
 
-      const cloudFunctionUrl =
-          'https://us-central1-test-project.cloudfunctions.net/submitScheduledNotebook';
+      const expectedCloudFunctionUrl =
+          'https://us-east1-test-project.cloudfunctions.net/submitScheduledNotebook';
       const serviceAccountEmail = 'test-project@appspot.gserviceaccount.com';
       const schedule = '0 1 * * 5';
 
       expect.assertions(2);
       try {
         await gcpService.scheduleNotebook(
-            runNotebookRequest, cloudFunctionUrl, serviceAccountEmail,
-            schedule);
+            runNotebookRequest, 'us-east1', serviceAccountEmail, schedule);
       } catch (err) {
         expect(err).toEqual(error);
       }
@@ -682,7 +681,7 @@ describe('GcpService', () => {
             headers: {'Content-Type': 'application/json'},
             httpMethod: 'POST',
             oidcToken: {serviceAccountEmail},
-            uri: cloudFunctionUrl
+            uri: expectedCloudFunctionUrl
           },
           name: `projects/test-project/locations/us-east1/jobs/${
               runNotebookRequest.jobId}`,

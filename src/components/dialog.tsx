@@ -1,13 +1,14 @@
-import {Dialog} from '@material-ui/core';
+import { ISettingRegistry } from '@jupyterlab/coreutils';
+import { INotebookModel } from '@jupyterlab/notebook';
+import { Dialog } from '@material-ui/core';
 import * as csstips from 'csstips';
 import * as React from 'react';
 import {stylesheet} from 'typestyle';
 
-import {GcpService, ProjectState} from '../service/gcp';
-import {BASE_FONT, COLORS} from '../styles';
-import {Initializer} from './initializer';
-import {EnhancedSchedulerForm} from './scheduler_form';
-import {INotebookModel} from '@jupyterlab/notebook';
+import { GcpService } from '../service/gcp';
+import { BASE_FONT, COLORS } from '../styles';
+import { Initializer } from './initializer';
+import { SchedulerForm } from './scheduler_form';
 
 /** Information provided to the GcpSchedulerWidget */
 export interface LaunchSchedulerRequest {
@@ -24,13 +25,25 @@ export interface PropsWithGcpService {
 /** Definition for a function that closes the SchedulerDialog. */
 export type OnDialogClose = () => void;
 
+/** Extension settings. */
+export interface GcpSettings {
+  projectId: string;
+  gcsBucket: string;
+  schedulerRegion: string;
+  serviceAccount: string;
+  oAuthClientId?: string;
+  oAuthClientSecret?: string;
+}
+
 interface Props extends PropsWithGcpService {
   request: LaunchSchedulerRequest;
+  settings: ISettingRegistry.ISettings;
 }
 
 interface State {
   dialogClosedByUser: boolean;
-  projectState?: ProjectState;
+  gcpSettings?: GcpSettings;
+  canSchedule: boolean;
 }
 
 const localStyles = stylesheet({
@@ -58,13 +71,22 @@ export class SchedulerDialog extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    this.state = {dialogClosedByUser: false};
-    this._setProjectState = this._setProjectState.bind(this);
+    this.state = {
+      dialogClosedByUser: false,
+      canSchedule: false,
+    };
+    this._settingsChanged = this._settingsChanged.bind(this);
     this._onDialogClose = this._onDialogClose.bind(this);
   }
 
+  /** Establishes the binding for Settings Signal and invokes the handler. */
   componentDidMount() {
-    this._setProjectState();
+    this.props.settings.changed.connect(this._settingsChanged);
+    this._settingsChanged(this.props.settings);
+  }
+
+  componentWillUnmount() {
+    this.props.settings.changed.disconnect(this._settingsChanged);
   }
 
   /**
@@ -78,34 +100,35 @@ export class SchedulerDialog extends React.Component<Props, State> {
   }
 
   render() {
-    const {dialogClosedByUser, projectState} = this.state;
+    const {canSchedule, dialogClosedByUser, gcpSettings} = this.state;
     const {gcpService, request} = this.props;
     const hasNotebook = !!(request && request.notebook);
     return (
       <Dialog open={hasNotebook && !dialogClosedByUser}>
         <main className={localStyles.main}>
           <p className={localStyles.header}>Schedule a notebook run</p>
-          {!projectState && <p>Validating project configuration...</p>}
-          {projectState && projectState.ready && hasNotebook &&
-            <EnhancedSchedulerForm gcpService={gcpService}
+          {!canSchedule && <Initializer gcpService={gcpService}
+            onDialogClose={this._onDialogClose}
+            settings={this.props.settings}
+          />}
+          {canSchedule && hasNotebook &&
+            <SchedulerForm gcpService={gcpService}
+              gcpSettings={gcpSettings}
               notebookName={request.notebookName}
               notebook={request.notebook}
               onDialogClose={this._onDialogClose} />}
-          {projectState && !projectState.ready
-            && <Initializer gcpService={gcpService}
-              projectState={projectState}
-              onDialogClose={this._onDialogClose}
-              onStateChange={this._setProjectState}
-            />
-          }
         </main>
       </Dialog>
     );
   }
 
-  private async _setProjectState() {
-    const projectState = await this.props.gcpService.getProjectState();
-    this.setState({projectState});
+  // Casts to GcpSettings shape from JSONObject
+  private _settingsChanged(newSettings: ISettingRegistry.ISettings) {
+    const settings = newSettings.composite as unknown as GcpSettings;
+    const canSchedule = !!(settings.projectId &&
+      settings.gcsBucket && settings.schedulerRegion && settings.serviceAccount);
+
+    this.setState({gcpSettings: settings, canSchedule});
   }
 
   private _onDialogClose() {

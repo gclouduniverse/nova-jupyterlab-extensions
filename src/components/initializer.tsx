@@ -1,19 +1,19 @@
-import * as React from 'react';
+import { ISettingRegistry } from '@jupyterlab/coreutils';
+import { withStyles } from '@material-ui/core';
+import { Check, Close } from '@material-ui/icons';
 import * as csstips from 'csstips';
-import {Check, Close} from '@material-ui/icons';
-import {withStyles} from '@material-ui/core';
+import * as React from 'react';
 import {stylesheet} from 'typestyle';
 
-import {PropsWithGcpService, OnDialogClose} from './dialog';
-import {ProjectState} from '../service/gcp';
-import {css, COLORS} from '../styles';
-import {LearnMoreLink} from './shared/learn_more_link';
-import {SubmitButton} from './shared/submit_button';
+import { ProjectState } from '../service/gcp';
+import { COLORS, css } from '../styles';
+import { OnDialogClose, PropsWithGcpService } from './dialog';
+import { LearnMoreLink } from './shared/learn_more_link';
+import { SubmitButton } from './shared/submit_button';
 
 interface Props extends PropsWithGcpService {
-  projectState: ProjectState;
   onDialogClose: OnDialogClose;
-  onStateChange: () => void;
+  settings: ISettingRegistry.ISettings;
 }
 
 interface State {
@@ -21,6 +21,7 @@ interface State {
   creatingGcsBucket: boolean;
   creatingCloudFunction: boolean;
   error?: string;
+  projectState?: ProjectState;
 }
 
 const localStyles = stylesheet({
@@ -68,10 +69,13 @@ export class Initializer extends React.Component<Props, State> {
     this._onInitialize = this._onInitialize.bind(this);
   }
 
+  componentDidMount() {
+    this._setProjectState();
+  }
+
   render() {
-    const {projectState} = this.props;
     const {enablingApis, error, creatingGcsBucket,
-      creatingCloudFunction} = this.state;
+      creatingCloudFunction, projectState} = this.state;
     const operationsPending = enablingApis || creatingGcsBucket ||
       creatingCloudFunction;
     return (
@@ -84,7 +88,8 @@ export class Initializer extends React.Component<Props, State> {
           clicking <em>Initialize</em>, you are agreeing to the terms
           of service for the various APIs and charges in use.
         </p>
-        <div className={localStyles.serviceStatuses}>
+        {!projectState && <p>Validating project configuration...</p>}
+        {projectState && <div className={localStyles.serviceStatuses}>
           {projectState.serviceStatuses.map((s) => {
             return <div className={localStyles.serviceStatusItem}
               key={s.service.endpoint}>
@@ -101,13 +106,13 @@ export class Initializer extends React.Component<Props, State> {
             {this._getIconForState(projectState.hasCloudFunction)}
             <span>Has Cloud Function?</span>
           </div>
-        </div>
-        <div className={css.actionBar}>
+        </div>}
+        {projectState && <div className={css.actionBar}>
           <button className={css.button} onClick={this.props.onDialogClose}>
             Close</button>
           <SubmitButton actionPending={operationsPending}
             onClick={this._onInitialize} text='Initialize' />
-        </div>
+        </div>}
         {error && <p className='error'>{error}</p>}
         {operationsPending &&
           <div>
@@ -125,8 +130,7 @@ export class Initializer extends React.Component<Props, State> {
   }
 
   private async _onInitialize() {
-    const {gcpService, projectState} = this.props;
-    const toEnable = projectState.serviceStatuses
+    const toEnable = this.state.projectState.serviceStatuses
       .filter((s) => !s.enabled)
       .map((s) => s.service.endpoint);
     // Services must be enabled before GCS Bucket and Cloud Function creation
@@ -134,22 +138,22 @@ export class Initializer extends React.Component<Props, State> {
     if (toEnable.length) {
       this.setState({enablingApis: true});
       try {
-        await gcpService.enableServices(toEnable);
+        await this.props.gcpService.enableServices(toEnable);
       } catch (err) {
         error = 'Unable to enable necessary GCP APIs';
       }
       this.setState({enablingApis: false});
-      this.props.onStateChange();
+      this._setProjectState();
     }
 
     if (error) {
       this.setState({error});
     } else {
       // Cloud Function and GCS Bucket creation can happen concurrently
-      if (!projectState.hasCloudFunction) {
+      if (!this.state.projectState.hasCloudFunction) {
         this._createCloudFunction();
       }
-      if (!projectState.hasGcsBucket) {
+      if (!this.state.projectState.hasGcsBucket) {
         this._createGcsBucket();
       }
     }
@@ -163,18 +167,23 @@ export class Initializer extends React.Component<Props, State> {
       this.setState({error: 'Unable to create Cloud Function'});
     }
     this.setState({creatingCloudFunction: false});
-    this.props.onStateChange();
+    this._setProjectState();
   }
 
   private async _createGcsBucket() {
     this.setState({creatingGcsBucket: true});
     try {
-      await this.props.gcpService.createBucket(this.props.projectState.projectId);
+      await this.props.gcpService.createBucket(this.state.projectState.projectId);
     } catch (err) {
       this.setState({error: 'Unable to create GCS Bucket'});
     }
     this.setState({creatingGcsBucket: false});
-    this.props.onStateChange();
+    this._setProjectState();
+  }
+
+  private async _setProjectState() {
+    const projectState = await this.props.gcpService.getProjectState();
+    this.setState({projectState});
   }
 
 }

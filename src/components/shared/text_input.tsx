@@ -6,7 +6,7 @@ interface TextInputProps {
   name?: string;
   value?: string;
   placeholder?: string;
-  onChange?: (e: React.ChangeEvent<any>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /** Funtional Component for text input fields */
@@ -16,9 +16,7 @@ export function TextInput(props: TextInputProps) {
   return (
     <div className={css.inputContainer}>
       {label && <label>{label}</label>}
-      <input
-        className={css.input}
-        {...inputProps} />
+      <input className={css.input} {...inputProps} />
     </div>
   );
 }

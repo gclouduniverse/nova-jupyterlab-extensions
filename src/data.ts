@@ -6,6 +6,8 @@ export const CUSTOM = 'CUSTOM';
 
 /** Indicates a single Notebook run */
 export const SINGLE = 'single';
+/** Indiactes a recurring scheduled Notebook run */
+export const RECURRING = 'recurring';
 
 /** Interface for an <option> inside a <select> */
 export interface Option {
@@ -135,5 +137,5 @@ export const REGIONS: Option[] = [
 /** Single execution or recurring schedule */
 export const SCHEDULE_TYPES: Option[] = [
   {value: SINGLE, text: 'Single run'},
-  {value: 'recurring', text: 'Recurring run'},
+  {value: RECURRING, text: 'Recurring run'},
 ];

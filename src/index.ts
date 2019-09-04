@@ -3,6 +3,7 @@ import '../style/index.css';
 
 import {JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
 import {ToolbarButton} from '@jupyterlab/apputils';
+import {ISettingRegistry} from '@jupyterlab/coreutils';
 import {DocumentRegistry} from '@jupyterlab/docregistry';
 import {INotebookModel, NotebookPanel} from '@jupyterlab/notebook';
 import {toArray} from '@phosphor/algorithm';
@@ -16,8 +17,9 @@ import {defaultGapiProvider, GcpService} from './service/gcp';
  */
 const buttonPlugin: JupyterLabPlugin<void> = {
   activate: activateButton,
-  id: 'nova:button',
   autoStart: true,
+  id: 'gcpscheduler:button',
+  requires: [ISettingRegistry]
 };
 
 /**
@@ -53,12 +55,16 @@ export class ButtonExtension implements
   }
 }
 
-function activateButton(app: JupyterLab) {
-  console.log('Activating Scheduled Notebook Extension');
+async function activateButton(
+    app: JupyterLab, settingRegistry: ISettingRegistry) {
+  console.log('Activating GCP Scheduled Notebook Extension');
   const gcpService = new GcpService(defaultGapiProvider());
   const schedulerContext = new GcpSchedulerContext();
-  const schedulerWidget = new GcpSchedulerWidget(gcpService, schedulerContext);
-  schedulerWidget.id = 'gcp-scheduler';
+  const settings =
+      await settingRegistry.load('jupyterlab_gcpscheduler:gcpsettings');
+  const schedulerWidget =
+      new GcpSchedulerWidget(gcpService, settings, schedulerContext);
+  schedulerWidget.id = 'gcpscheduler';
   app.shell.addToBottomArea(schedulerWidget);
 
   app.docRegistry.addWidgetExtension(

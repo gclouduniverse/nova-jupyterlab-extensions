@@ -15,6 +15,7 @@
   "author": "GCP AI Platform UI Team",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "schema/gcpsettings.json",
     "style/*.css",
     "style/images/*.png"
   ],
@@ -81,6 +82,17 @@
     "react-dom": "~16.4.2"
   },
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "schemaDir": "schema",
+    "discovery": {
+      "server": {
+        "base": {
+          "name": "jupyterlab_gcpscheduler",
+          "managers": [
+            "pip"
+          ]
+        }
+      }
+    }
   }
 }
