@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { GcpService } from '../service/gcp';
 import { SchedulerDialog, LaunchSchedulerRequest } from './dialog';
-import { ISettingRegistry} from '@jupyterlab/coreutils';
+import { ISettingRegistry } from '@jupyterlab/coreutils';
 
 /**
  * Wraps a LaunchSchedulerRequest in a Signal to be able to update the
@@ -24,17 +24,21 @@ export class GcpSchedulerContext extends VDomModel {
 
 /** Phosphor Widget responsive to changes in the NotebookContext */
 export class GcpSchedulerWidget extends VDomRenderer<GcpSchedulerContext> {
-
-  constructor(private gcpService: GcpService,
+  constructor(
+    private gcpService: GcpService,
     private settings: ISettingRegistry.ISettings,
-    readonly model: GcpSchedulerContext) {
+    readonly model: GcpSchedulerContext
+  ) {
     super();
   }
 
   protected render() {
-    return <SchedulerDialog gcpService={this.gcpService}
-      request={this.model.value}
-      settings={this.settings}
-    />;
+    return (
+      <SchedulerDialog
+        gcpService={this.gcpService}
+        request={this.model.value}
+        settings={this.settings}
+      />
+    );
   }
 }

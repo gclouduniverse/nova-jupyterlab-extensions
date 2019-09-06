@@ -3,7 +3,7 @@ import { INotebookModel } from '@jupyterlab/notebook';
 import { Dialog } from '@material-ui/core';
 import * as csstips from 'csstips';
 import * as React from 'react';
-import {stylesheet} from 'typestyle';
+import { stylesheet } from 'typestyle';
 
 import { GcpService } from '../service/gcp';
 import { BASE_FONT, COLORS } from '../styles';
@@ -60,14 +60,13 @@ const localStyles = stylesheet({
     width: '480px',
     ...BASE_FONT,
     ...csstips.vertical,
-  }
+  },
 });
 
 /**
  * Dialog wrapping the GCP scheduler UI.
  */
 export class SchedulerDialog extends React.Component<Props, State> {
-
   constructor(props: Props) {
     super(props);
 
@@ -93,30 +92,38 @@ export class SchedulerDialog extends React.Component<Props, State> {
    * Set the dialog to be open since for any new request with a valid Notebook.
    */
   componentDidUpdate(prevProps: Props) {
-    if (prevProps.request !== this.props.request &&
-      !!this.props.request.notebook) {
-      this.setState({dialogClosedByUser: false});
+    if (
+      prevProps.request !== this.props.request &&
+      !!this.props.request.notebook
+    ) {
+      this.setState({ dialogClosedByUser: false });
     }
   }
 
   render() {
-    const {canSchedule, dialogClosedByUser, gcpSettings} = this.state;
-    const {gcpService, request} = this.props;
+    const { canSchedule, dialogClosedByUser, gcpSettings } = this.state;
+    const { gcpService, request } = this.props;
     const hasNotebook = !!(request && request.notebook);
     return (
       <Dialog open={hasNotebook && !dialogClosedByUser}>
         <main className={localStyles.main}>
           <p className={localStyles.header}>Schedule a notebook run</p>
-          {!canSchedule && <Initializer gcpService={gcpService}
-            onDialogClose={this._onDialogClose}
-            settings={this.props.settings}
-          />}
-          {canSchedule && hasNotebook &&
-            <SchedulerForm gcpService={gcpService}
+          {!canSchedule && (
+            <Initializer
+              gcpService={gcpService}
+              onDialogClose={this._onDialogClose}
+              settings={this.props.settings}
+            />
+          )}
+          {canSchedule && hasNotebook && (
+            <SchedulerForm
+              gcpService={gcpService}
               gcpSettings={gcpSettings}
               notebookName={request.notebookName}
               notebook={request.notebook}
-              onDialogClose={this._onDialogClose} />}
+              onDialogClose={this._onDialogClose}
+            />
+          )}
         </main>
       </Dialog>
     );
@@ -124,16 +131,18 @@ export class SchedulerDialog extends React.Component<Props, State> {
 
   // Casts to GcpSettings shape from JSONObject
   private _settingsChanged(newSettings: ISettingRegistry.ISettings) {
-    const settings = newSettings.composite as unknown as GcpSettings;
-    const canSchedule = !!(settings.projectId &&
-      settings.gcsBucket && settings.schedulerRegion && settings.serviceAccount);
+    const settings = (newSettings.composite as unknown) as GcpSettings;
+    const canSchedule = !!(
+      settings.projectId &&
+      settings.gcsBucket &&
+      settings.schedulerRegion &&
+      settings.serviceAccount
+    );
 
-    this.setState({gcpSettings: settings, canSchedule});
+    this.setState({ gcpSettings: settings, canSchedule });
   }
 
   private _onDialogClose() {
-    this.setState({dialogClosedByUser: true});
+    this.setState({ dialogClosedByUser: true });
   }
 }
-
-

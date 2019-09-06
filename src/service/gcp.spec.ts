@@ -1,10 +1,11 @@
-import {GcpService, RunNotebookRequest} from './gcp';
+/* eslint-disable @typescript-eslint/camelcase */
+import { GcpService, RunNotebookRequest } from './gcp';
 
 const _setTimeout = global.setTimeout;
 const FAKE_GAPI_PROVIDER = Promise.resolve();
 const FAKE_AUTH = {
   token: 'authtoken',
-  project: 'test-project'
+  project: 'test-project',
 };
 
 // Helper to ensure that interval calls to the poller are scheduled immediately
@@ -16,7 +17,7 @@ function pollerHelper(): () => void {
     running = true;
     while (running) {
       jest.runOnlyPendingTimers();
-      await new Promise((r) => _setTimeout(r, 1));
+      await new Promise(r => _setTimeout(r, 1));
     }
   };
   start();
@@ -27,7 +28,9 @@ function pollerHelper(): () => void {
 
 // Fake implementation of fetch to get Auth token
 function fakeAuthFetch(): Promise<Response> {
-  return Promise.resolve({json: () => Promise.resolve(FAKE_AUTH)} as Response);
+  return Promise.resolve({
+    json: () => Promise.resolve(FAKE_AUTH),
+  } as Response);
 }
 
 describe('GcpService', () => {
@@ -43,44 +46,46 @@ describe('GcpService', () => {
       client: {
         request: gapiRequestMock,
         setToken: jest.fn(),
-      }
+      },
     };
   });
 
   describe('API Services', () => {
     it('Gets project state with ready status', async () => {
-      gapiRequestMock.mockImplementation((args: {path: string}) => {
+      gapiRequestMock.mockImplementation((args: { path: string }) => {
         if (args.path.indexOf('servicemanagement') >= 0) {
           return {
             result: {
               services: [
-                {serviceName: 'storage-api.googleapis.com'},
-                {serviceName: 'cloudscheduler.googleapis.com'},
-                {serviceName: 'ml.googleapis.com'},
-                {serviceName: 'cloudfunctions.googleapis.com'},
-              ]
-            }
+                { serviceName: 'storage-api.googleapis.com' },
+                { serviceName: 'cloudscheduler.googleapis.com' },
+                { serviceName: 'ml.googleapis.com' },
+                { serviceName: 'cloudfunctions.googleapis.com' },
+              ],
+            },
           };
         } else if (args.path.indexOf('cloudfunctions') >= 0) {
           return {
             result: {
-              functions: [{
-                name: 'submitScheduledNotebook',
-                status: 'ACTIVE',
-                httpsTrigger: {
-                  url: 'https://mycloudfunctiourl.goog',
-                }
-              }]
-            }
+              functions: [
+                {
+                  name: 'submitScheduledNotebook',
+                  status: 'ACTIVE',
+                  httpsTrigger: {
+                    url: 'https://mycloudfunctiourl.goog',
+                  },
+                },
+              ],
+            },
           };
         } else if (args.path.indexOf('storage') >= 0) {
-          return {result: {items: ['bucket1']}};
+          return { result: { items: ['bucket1'] } };
         }
       });
       const projectState = await gcpService.getProjectState();
 
       expect(gapi.client.setToken).toBeCalledWith({
-        access_token: FAKE_AUTH.token
+        access_token: FAKE_AUTH.token,
       });
       expect(projectState).toEqual({
         allServicesEnabled: true,
@@ -95,7 +100,7 @@ describe('GcpService', () => {
               endpoint: 'storage-api.googleapis.com',
               documentation: 'https://cloud.google.com/storage/',
             },
-            enabled: true
+            enabled: true,
           },
           {
             service: {
@@ -103,7 +108,7 @@ describe('GcpService', () => {
               endpoint: 'cloudscheduler.googleapis.com',
               documentation: 'https://cloud.google.com/scheduler',
             },
-            enabled: true
+            enabled: true,
           },
           {
             service: {
@@ -111,7 +116,7 @@ describe('GcpService', () => {
               endpoint: 'ml.googleapis.com',
               documentation: 'https://cloud.google.com/ai-platform/',
             },
-            enabled: true
+            enabled: true,
           },
           {
             service: {
@@ -119,35 +124,35 @@ describe('GcpService', () => {
               endpoint: 'cloudfunctions.googleapis.com',
               documentation: 'https://cloud.google.com/functions/',
             },
-            enabled: true
-          }
-        ]
+            enabled: true,
+          },
+        ],
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         params: {
           consumerId: 'project:test-project',
           pageSize: 100,
         },
-        path: 'https://servicemanagement.googleapis.com/v1/services'
+        path: 'https://servicemanagement.googleapis.com/v1/services',
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         params: {
           project: 'test-project',
         },
-        path: '/storage/v1/b'
+        path: '/storage/v1/b',
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         path:
-            'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions'
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions',
       });
     });
 
     it('Gets project state with disabled APIs', async () => {
-      gapiRequestMock.mockResolvedValue({result: {services: []}});
+      gapiRequestMock.mockResolvedValue({ result: { services: [] } });
       const projectState = await gcpService.getProjectState();
 
       expect(gapi.client.setToken).toBeCalledWith({
-        access_token: FAKE_AUTH.token
+        access_token: FAKE_AUTH.token,
       });
       expect(projectState).toEqual({
         allServicesEnabled: false,
@@ -162,7 +167,7 @@ describe('GcpService', () => {
               endpoint: 'storage-api.googleapis.com',
               documentation: 'https://cloud.google.com/storage/',
             },
-            enabled: false
+            enabled: false,
           },
           {
             service: {
@@ -170,7 +175,7 @@ describe('GcpService', () => {
               endpoint: 'cloudscheduler.googleapis.com',
               documentation: 'https://cloud.google.com/scheduler',
             },
-            enabled: false
+            enabled: false,
           },
           {
             service: {
@@ -178,7 +183,7 @@ describe('GcpService', () => {
               endpoint: 'ml.googleapis.com',
               documentation: 'https://cloud.google.com/ai-platform/',
             },
-            enabled: false
+            enabled: false,
           },
           {
             service: {
@@ -186,162 +191,168 @@ describe('GcpService', () => {
               endpoint: 'cloudfunctions.googleapis.com',
               documentation: 'https://cloud.google.com/functions/',
             },
-            enabled: false
-          }
-        ]
+            enabled: false,
+          },
+        ],
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         params: {
           consumerId: 'project:test-project',
           pageSize: 100,
         },
-        path: 'https://servicemanagement.googleapis.com/v1/services'
+        path: 'https://servicemanagement.googleapis.com/v1/services',
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         params: {
           project: 'test-project',
         },
-        path: '/storage/v1/b'
+        path: '/storage/v1/b',
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         path:
-            'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions'
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions',
       });
     });
 
-    it('Gets project state with Storage disabled and pending Cloud Function',
-       async () => {
-         gapiRequestMock.mockImplementation((args: {path: string}) => {
-           if (args.path.indexOf('servicemanagement') >= 0) {
-             return {
-               result: {
-                 services: [
-                   {serviceName: 'cloudscheduler.googleapis.com'},
-                   {serviceName: 'ml.googleapis.com'},
-                   {serviceName: 'cloudfunctions.googleapis.com'},
-                 ]
-               }
-             };
-           } else if (args.path.indexOf('cloudfunctions') >= 0) {
-             return {
-               result: {
-                 functions: [{
-                   name: 'submitScheduledNotebook',
-                   status: 'CREATING',
-                   httpsTrigger: {
-                     url: 'https://mycloudfunctiourl.goog',
-                   }
-                 }]
-               }
-             };
-           } else if (args.path.indexOf('storage') >= 0) {
-             return Promise.reject({error: 'Storage is not available'});
-           }
-         });
-         const projectState = await gcpService.getProjectState();
+    it('Gets project state with Storage disabled and pending Cloud Function', async () => {
+      gapiRequestMock.mockImplementation((args: { path: string }) => {
+        if (args.path.indexOf('servicemanagement') >= 0) {
+          return {
+            result: {
+              services: [
+                { serviceName: 'cloudscheduler.googleapis.com' },
+                { serviceName: 'ml.googleapis.com' },
+                { serviceName: 'cloudfunctions.googleapis.com' },
+              ],
+            },
+          };
+        } else if (args.path.indexOf('cloudfunctions') >= 0) {
+          return {
+            result: {
+              functions: [
+                {
+                  name: 'submitScheduledNotebook',
+                  status: 'CREATING',
+                  httpsTrigger: {
+                    url: 'https://mycloudfunctiourl.goog',
+                  },
+                },
+              ],
+            },
+          };
+        } else if (args.path.indexOf('storage') >= 0) {
+          return Promise.reject({ error: 'Storage is not available' });
+        }
+      });
+      const projectState = await gcpService.getProjectState();
 
-         expect(gapi.client.setToken).toBeCalledWith({
-           access_token: FAKE_AUTH.token
-         });
-         expect(projectState).toEqual({
-           allServicesEnabled: false,
-           hasCloudFunction: false,
-           hasGcsBucket: false,
-           projectId: 'test-project',
-           ready: false,
-           serviceStatuses: [
-             {
-               service: {
-                 name: 'Cloud Storage API',
-                 endpoint: 'storage-api.googleapis.com',
-                 documentation: 'https://cloud.google.com/storage/',
-               },
-               enabled: false
-             },
-             {
-               service: {
-                 name: 'Cloud Scheduler API',
-                 endpoint: 'cloudscheduler.googleapis.com',
-                 documentation: 'https://cloud.google.com/scheduler',
-               },
-               enabled: true
-             },
-             {
-               service: {
-                 name: 'AI Platform Training API',
-                 endpoint: 'ml.googleapis.com',
-                 documentation: 'https://cloud.google.com/ai-platform/',
-               },
-               enabled: true
-             },
-             {
-               service: {
-                 name: 'Cloud Functions API',
-                 endpoint: 'cloudfunctions.googleapis.com',
-                 documentation: 'https://cloud.google.com/functions/',
-               },
-               enabled: true
-             }
-           ]
-         });
-         expect(gapi.client.request).toHaveBeenCalledWith({
-           params: {
-             consumerId: 'project:test-project',
-             pageSize: 100,
-           },
-           path: 'https://servicemanagement.googleapis.com/v1/services'
-         });
-         expect(gapi.client.request).toHaveBeenCalledWith({
-           params: {
-             project: 'test-project',
-           },
-           path: '/storage/v1/b'
-         });
-         expect(gapi.client.request).toHaveBeenCalledWith({
-           path:
-               'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions'
-         });
-       });
+      expect(gapi.client.setToken).toBeCalledWith({
+        access_token: FAKE_AUTH.token,
+      });
+      expect(projectState).toEqual({
+        allServicesEnabled: false,
+        hasCloudFunction: false,
+        hasGcsBucket: false,
+        projectId: 'test-project',
+        ready: false,
+        serviceStatuses: [
+          {
+            service: {
+              name: 'Cloud Storage API',
+              endpoint: 'storage-api.googleapis.com',
+              documentation: 'https://cloud.google.com/storage/',
+            },
+            enabled: false,
+          },
+          {
+            service: {
+              name: 'Cloud Scheduler API',
+              endpoint: 'cloudscheduler.googleapis.com',
+              documentation: 'https://cloud.google.com/scheduler',
+            },
+            enabled: true,
+          },
+          {
+            service: {
+              name: 'AI Platform Training API',
+              endpoint: 'ml.googleapis.com',
+              documentation: 'https://cloud.google.com/ai-platform/',
+            },
+            enabled: true,
+          },
+          {
+            service: {
+              name: 'Cloud Functions API',
+              endpoint: 'cloudfunctions.googleapis.com',
+              documentation: 'https://cloud.google.com/functions/',
+            },
+            enabled: true,
+          },
+        ],
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        params: {
+          consumerId: 'project:test-project',
+          pageSize: 100,
+        },
+        path: 'https://servicemanagement.googleapis.com/v1/services',
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        params: {
+          project: 'test-project',
+        },
+        path: '/storage/v1/b',
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        path:
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions',
+      });
+    });
 
     it('Enables services', async () => {
       let operationNo = 1;
       gapiRequestMock.mockImplementation(
-          (request: {path: string, body: any}) => {
-            if (request.path.endsWith('enable')) {  // Enable requests
-              return {result: {name: `operation${operationNo++}`}};
-            } else {  // Operation polls
-              return {
-                result: {
-                  done: true,
-                  response: {name: request.path.split('/').pop()}
-                }
-              };
-            }
-          });
+        (request: { path: string; body: any }) => {
+          if (request.path.endsWith('enable')) {
+            // Enable requests
+            return { result: { name: `operation${operationNo++}` } };
+          } else {
+            // Operation polls
+            return {
+              result: {
+                done: true,
+                response: { name: request.path.split('/').pop() },
+              },
+            };
+          }
+        }
+      );
 
       const stopTimers = pollerHelper();
-      const operations =
-          await gcpService.enableServices(['service1', 'service2']);
+      const operations = await gcpService.enableServices([
+        'service1',
+        'service2',
+      ]);
       stopTimers();
 
       expect(gapi.client.request).toBeCalledWith({
         path:
-            'https://servicemanagement.googleapis.com/v1/services/service1:enable',
+          'https://servicemanagement.googleapis.com/v1/services/service1:enable',
         method: 'POST',
-        body: {consumerId: 'project:test-project'}
+        body: { consumerId: 'project:test-project' },
       });
 
       expect(gapi.client.request).toBeCalledWith({
         path:
-            'https://servicemanagement.googleapis.com/v1/services/service2:enable',
+          'https://servicemanagement.googleapis.com/v1/services/service2:enable',
         method: 'POST',
-        body: {consumerId: 'project:test-project'}
+        body: { consumerId: 'project:test-project' },
       });
       expect(gapi.client.request).toBeCalledWith({
-        path: 'https://servicemanagement.googleapis.com/v1/operation1'
+        path: 'https://servicemanagement.googleapis.com/v1/operation1',
       });
       expect(gapi.client.request).toBeCalledWith({
-        path: 'https://servicemanagement.googleapis.com/v1/operation2'
+        path: 'https://servicemanagement.googleapis.com/v1/operation2',
       });
       expect(operations).toHaveLength(2);
     });
@@ -349,20 +360,23 @@ describe('GcpService', () => {
     it('Enables services with failed operations', async () => {
       let operationNo = 1;
       gapiRequestMock.mockImplementation(
-          (request: {path: string, body: any}) => {
-            if (request.path.endsWith('enable')) {  // Enable requests
-              return {result: {name: `operation${operationNo++}`}};
-            } else {  // Operation polls
-              const operation = request.path.split('/').pop();
-              const result: any = {result: {done: true}};
-              if (operation === 'operation2') {
-                result.result.error = `${operation} failed`;
-              } else {
-                result.result.response = `${operation} finished`;
-              }
-              return result;
+        (request: { path: string; body: any }) => {
+          if (request.path.endsWith('enable')) {
+            // Enable requests
+            return { result: { name: `operation${operationNo++}` } };
+          } else {
+            // Operation polls
+            const operation = request.path.split('/').pop();
+            const result: any = { result: { done: true } };
+            if (operation === 'operation2') {
+              result.result.error = `${operation} failed`;
+            } else {
+              result.result.response = `${operation} finished`;
             }
-          });
+            return result;
+          }
+        }
+      );
 
       const stopTimers = pollerHelper();
       expect.assertions(5);
@@ -375,21 +389,21 @@ describe('GcpService', () => {
 
       expect(gapi.client.request).toBeCalledWith({
         path:
-            'https://servicemanagement.googleapis.com/v1/services/service1:enable',
+          'https://servicemanagement.googleapis.com/v1/services/service1:enable',
         method: 'POST',
-        body: {consumerId: 'project:test-project'}
+        body: { consumerId: 'project:test-project' },
       });
       expect(gapi.client.request).toBeCalledWith({
         path:
-            'https://servicemanagement.googleapis.com/v1/services/service2:enable',
+          'https://servicemanagement.googleapis.com/v1/services/service2:enable',
         method: 'POST',
-        body: {consumerId: 'project:test-project'}
+        body: { consumerId: 'project:test-project' },
       });
       expect(gapi.client.request).toBeCalledWith({
-        path: 'https://servicemanagement.googleapis.com/v1/operation1'
+        path: 'https://servicemanagement.googleapis.com/v1/operation1',
       });
       expect(gapi.client.request).toBeCalledWith({
-        path: 'https://servicemanagement.googleapis.com/v1/operation2'
+        path: 'https://servicemanagement.googleapis.com/v1/operation2',
       });
     });
   });
@@ -398,7 +412,7 @@ describe('GcpService', () => {
     const bucketName = 'my-bucket';
 
     it('Creates a Bucket', async () => {
-      gapiRequestMock.mockResolvedValue({result: {name: bucketName}});
+      gapiRequestMock.mockResolvedValue({ result: { name: bucketName } });
 
       const bucket = await gcpService.createBucket(bucketName);
       expect(bucket.name).toBe(bucketName);
@@ -406,13 +420,13 @@ describe('GcpService', () => {
       expect(gapi.client.request).toBeCalledWith({
         path: '/storage/v1/b',
         method: 'POST',
-        params: {project: 'test-project'},
-        body: {name: bucketName}
+        params: { project: 'test-project' },
+        body: { name: bucketName },
       });
     });
 
     it('Throws an error when creating a Bucket', async () => {
-      const error = {error: 'Could not create bucket'};
+      const error = { error: 'Could not create bucket' };
       gapiRequestMock.mockRejectedValue(error);
 
       expect.assertions(2);
@@ -425,39 +439,43 @@ describe('GcpService', () => {
       expect(gapi.client.request).toBeCalledWith({
         path: '/storage/v1/b',
         method: 'POST',
-        params: {project: 'test-project'},
-        body: {name: bucketName}
+        params: { project: 'test-project' },
+        body: { name: bucketName },
       });
     });
 
     it('Uploads a Notebook', async () => {
-      const fakeObject = {bucket: 'fake-bucket', name: 'notebook.json'};
-      gapiRequestMock.mockResolvedValue({result: fakeObject});
+      const fakeObject = { bucket: 'fake-bucket', name: 'notebook.json' };
+      gapiRequestMock.mockResolvedValue({ result: fakeObject });
 
       const fakeContents = 'fake Notebook content';
       const object = await gcpService.uploadNotebook(
-          fakeContents, 'gs://fake-bucket/notebook.json');
+        fakeContents,
+        'gs://fake-bucket/notebook.json'
+      );
 
       expect(object).toEqual(fakeObject);
 
       expect(gapi.client.request).toBeCalledWith({
         path: '/upload/storage/v1/b/fake-bucket/o',
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        params: {name: 'notebook.json', uploadType: 'media'},
-        body: fakeContents
+        headers: { 'Content-Type': 'application/json' },
+        params: { name: 'notebook.json', uploadType: 'media' },
+        body: fakeContents,
       });
     });
 
     it('Throws an error when uploading a Notebook', async () => {
-      const error = {error: 'Could not upload Notebook'};
+      const error = { error: 'Could not upload Notebook' };
       gapiRequestMock.mockRejectedValue(error);
 
       const fakeContents = 'fake Notebook content';
       expect.assertions(2);
       try {
         await gcpService.uploadNotebook(
-            fakeContents, 'gs://fake-bucket/notebook.json');
+          fakeContents,
+          'gs://fake-bucket/notebook.json'
+        );
       } catch (err) {
         expect(err).toEqual(error);
       }
@@ -465,9 +483,9 @@ describe('GcpService', () => {
       expect(gapi.client.request).toBeCalledWith({
         path: '/upload/storage/v1/b/fake-bucket/o',
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        params: {name: 'notebook.json', uploadType: 'media'},
-        body: fakeContents
+        headers: { 'Content-Type': 'application/json' },
+        params: { name: 'notebook.json', uploadType: 'media' },
+        body: fakeContents,
       });
     });
   });
@@ -477,16 +495,18 @@ describe('GcpService', () => {
       // Mock a chain of requests so the operation poller has to poll twice
       const createdFunction = {
         name:
-            'projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
+          'projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
         httpsTrigger: {
           url:
-              'https://us-central1-test-project.cloudfunctions.net/submitScheduledNotebook'
-        }
+            'https://us-central1-test-project.cloudfunctions.net/submitScheduledNotebook',
+        },
       };
-      gapiRequestMock.mockResolvedValueOnce({result: {name: 'createoperation'}})
-          .mockResolvedValueOnce({result: {done: false}})
-          .mockResolvedValueOnce(
-              {result: {done: true, response: createdFunction}});
+      gapiRequestMock
+        .mockResolvedValueOnce({ result: { name: 'createoperation' } })
+        .mockResolvedValueOnce({ result: { done: false } })
+        .mockResolvedValueOnce({
+          result: { done: true, response: createdFunction },
+        });
 
       const stopTimers = pollerHelper();
       const cloudFunction = await gcpService.createCloudFunction('us-central1');
@@ -495,63 +515,65 @@ describe('GcpService', () => {
 
       expect(gapi.client.request).toBeCalledWith({
         path:
-            'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/us-central1/functions',
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/us-central1/functions',
         method: 'POST',
         body: {
           name:
-              'projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
+            'projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
           description: 'Submits a Notebook Job on AI Platform',
           entryPoint: 'submitScheduledNotebook',
           runtime: 'nodejs10',
           sourceArchiveUrl:
-              'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip',
+            'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip',
           httpsTrigger: {},
-        }
+        },
       });
       expect(gapi.client.request).toHaveBeenNthCalledWith(2, {
-        path: 'https://cloudfunctions.googleapis.com/v1/createoperation'
+        path: 'https://cloudfunctions.googleapis.com/v1/createoperation',
       });
       expect(gapi.client.request).toHaveBeenNthCalledWith(3, {
-        path: 'https://cloudfunctions.googleapis.com/v1/createoperation'
+        path: 'https://cloudfunctions.googleapis.com/v1/createoperation',
       });
     });
 
     it('Fails to create new Function', async () => {
       // Mock a chain of requests so the operation poller has to poll twice
-      gapiRequestMock.mockResolvedValueOnce({result: {name: 'createoperation'}})
-          .mockResolvedValueOnce({result: {done: false}})
-          .mockResolvedValueOnce(
-              {result: {done: true, error: 'Could not create Function'}});
+      gapiRequestMock
+        .mockResolvedValueOnce({ result: { name: 'createoperation' } })
+        .mockResolvedValueOnce({ result: { done: false } })
+        .mockResolvedValueOnce({
+          result: { done: true, error: 'Could not create Function' },
+        });
 
       const stopTimers = pollerHelper();
       expect.assertions(4);
       try {
         await gcpService.createCloudFunction('us-central1');
       } catch (err) {
-        expect(err).toEqual({done: true, error: 'Could not create Function'});
+        expect(err).toEqual({ done: true, error: 'Could not create Function' });
       }
       stopTimers();
 
       expect(gapi.client.request).toBeCalledWith({
         path:
-            'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/us-central1/functions',
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/us-central1/functions',
         method: 'POST',
         body: {
           name:
-              'projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
+            'projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
           description: 'Submits a Notebook Job on AI Platform',
           entryPoint: 'submitScheduledNotebook',
           runtime: 'nodejs10',
           sourceArchiveUrl:
-              'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip',
+            'gs://artifacts.deeplearning-platform-ui.appspot.com/gcp_scheduled_notebook_helper.zip',
           httpsTrigger: {},
-        }
+        },
       });
       expect(gapi.client.request).toHaveBeenNthCalledWith(2, {
-        path: 'https://cloudfunctions.googleapis.com/v1/createoperation'
+        path: 'https://cloudfunctions.googleapis.com/v1/createoperation',
       });
       expect(gapi.client.request).toHaveBeenNthCalledWith(3, {
-        path: 'https://cloudfunctions.googleapis.com/v1/createoperation'
+        path: 'https://cloudfunctions.googleapis.com/v1/createoperation',
       });
     });
   });
@@ -569,7 +591,7 @@ describe('GcpService', () => {
 
     const aiPlatformJobBody: gapi.client.ml.GoogleCloudMlV1__Job = {
       jobId: 'test_notebook_job',
-      labels: {job_type: 'jupyterlab_scheduled_notebook'},
+      labels: { job_type: 'jupyterlab_scheduled_notebook' },
       trainingInput: {
         args: [
           'nbexecutor',
@@ -578,11 +600,12 @@ describe('GcpService', () => {
           '--output-notebook',
           'gs://test-bucket/test_nb-out.ipynb',
         ],
-        masterConfig:
-            {imageUri: 'gcr.io/deeplearning-platform-release/tf-gpu.1-14:m32'},
+        masterConfig: {
+          imageUri: 'gcr.io/deeplearning-platform-release/tf-gpu.1-14:m32',
+        },
         region: 'us-east1',
         scaleTier: 'STANDARD_1',
-      }
+      },
     } as gapi.client.ml.GoogleCloudMlV1__Job;
 
     it('Submits Notebook Job to AI Platform', async () => {
@@ -591,7 +614,7 @@ describe('GcpService', () => {
         jobId: 'test_notebook_job',
         createTime: now,
       };
-      gapiRequestMock.mockResolvedValue({result: returnedJob});
+      gapiRequestMock.mockResolvedValue({ result: returnedJob });
 
       const job = await gcpService.runNotebook(runNotebookRequest);
       expect(gapi.client.request).toHaveBeenCalledWith({
@@ -603,7 +626,7 @@ describe('GcpService', () => {
     });
 
     it('Throws an error when submitting Notebook to AI Platform', async () => {
-      const error = {error: 'Could not create AI Platform Job'};
+      const error = { error: 'Could not create AI Platform Job' };
       gapiRequestMock.mockRejectedValue(error);
 
       expect.assertions(2);
@@ -624,51 +647,58 @@ describe('GcpService', () => {
       const returnedJob = {
         name: 'test_scheduled_notebook_job',
       };
-      gapiRequestMock.mockResolvedValue({result: returnedJob});
+      gapiRequestMock.mockResolvedValue({ result: returnedJob });
 
       const expectedCloudFunctionUrl =
-          'https://us-central1-test-project.cloudfunctions.net/submitScheduledNotebook';
+        'https://us-central1-test-project.cloudfunctions.net/submitScheduledNotebook';
       const serviceAccountEmail = 'test-project@appspot.gserviceaccount.com';
       const schedule = '0 1 * * 5';
 
       const job = await gcpService.scheduleNotebook(
-          runNotebookRequest, 'us-central1', serviceAccountEmail, schedule);
+        runNotebookRequest,
+        'us-central1',
+        serviceAccountEmail,
+        schedule
+      );
 
       expect(gapi.client.request).toHaveBeenCalledWith({
         body: {
           description: 'Scheduled Notebook',
           httpTarget: {
             body: btoa(JSON.stringify(aiPlatformJobBody)),
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             httpMethod: 'POST',
-            oidcToken: {serviceAccountEmail},
-            uri: expectedCloudFunctionUrl
+            oidcToken: { serviceAccountEmail },
+            uri: expectedCloudFunctionUrl,
           },
-          name: `projects/test-project/locations/us-central1/jobs/${
-              runNotebookRequest.jobId}`,
+          name: `projects/test-project/locations/us-central1/jobs/${runNotebookRequest.jobId}`,
           schedule,
-          timeZone: 'America/New_York'
+          timeZone: 'America/New_York',
         },
         method: 'POST',
         path:
-            'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations/us-central1/jobs'
+          'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations/us-central1/jobs',
       });
       expect(job).toEqual(returnedJob);
     });
 
     it('Throws an error when submitting Schedule Notebook Job', async () => {
-      const error = {error: 'Could not create Cloud Scheduler Job'};
+      const error = { error: 'Could not create Cloud Scheduler Job' };
       gapiRequestMock.mockRejectedValue(error);
 
       const expectedCloudFunctionUrl =
-          'https://us-east1-test-project.cloudfunctions.net/submitScheduledNotebook';
+        'https://us-east1-test-project.cloudfunctions.net/submitScheduledNotebook';
       const serviceAccountEmail = 'test-project@appspot.gserviceaccount.com';
       const schedule = '0 1 * * 5';
 
       expect.assertions(2);
       try {
         await gcpService.scheduleNotebook(
-            runNotebookRequest, 'us-east1', serviceAccountEmail, schedule);
+          runNotebookRequest,
+          'us-east1',
+          serviceAccountEmail,
+          schedule
+        );
       } catch (err) {
         expect(err).toEqual(error);
       }
@@ -678,19 +708,18 @@ describe('GcpService', () => {
           description: 'Scheduled Notebook',
           httpTarget: {
             body: btoa(JSON.stringify(aiPlatformJobBody)),
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             httpMethod: 'POST',
-            oidcToken: {serviceAccountEmail},
-            uri: expectedCloudFunctionUrl
+            oidcToken: { serviceAccountEmail },
+            uri: expectedCloudFunctionUrl,
           },
-          name: `projects/test-project/locations/us-east1/jobs/${
-              runNotebookRequest.jobId}`,
+          name: `projects/test-project/locations/us-east1/jobs/${runNotebookRequest.jobId}`,
           schedule,
-          timeZone: 'America/New_York'
+          timeZone: 'America/New_York',
         },
         method: 'POST',
         path:
-            'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations/us-east1/jobs'
+          'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations/us-east1/jobs',
       });
     });
   });

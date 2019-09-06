@@ -1,24 +1,27 @@
-import {INotebookModel} from '@jupyterlab/notebook';
-import {mount, ReactWrapper} from 'enzyme';
+import { INotebookModel } from '@jupyterlab/notebook';
+import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 
-import {CUSTOM, RECURRING, CONTAINER_IMAGES} from '../data';
-import {GcpService, RunNotebookRequest} from '../service/gcp';
-import {SchedulerForm} from './scheduler_form';
+import { CUSTOM, RECURRING, CONTAINER_IMAGES } from '../data';
+import { GcpService, RunNotebookRequest } from '../service/gcp';
+import { SchedulerForm } from './scheduler_form';
 
 // Simulates a form input change
-function simulateFieldChange(wrapper: ReactWrapper,
-  selector: string, name: string, value: string) {
-  wrapper.find(selector)
-    .simulate('change', {
-      persist: () => {},
-      target: {name, value}
-    });
+function simulateFieldChange(
+  wrapper: ReactWrapper,
+  selector: string,
+  name: string,
+  value: string
+) {
+  wrapper.find(selector).simulate('change', {
+    persist: () => {},
+    target: { name, value },
+  });
 }
 
 // Immediate promise that can be awaited
 function immediatePromise(): Promise<void> {
-  return new Promise((r) => setTimeout(r));
+  return new Promise(r => setTimeout(r));
 }
 
 describe('SchedulerForm', () => {
@@ -30,14 +33,14 @@ describe('SchedulerForm', () => {
   const mockScheduleNotebook = jest.fn();
   const mockNotebookContents = jest.fn();
   const mockDialogClose = jest.fn();
-  const mockGcpService = {
+  const mockGcpService = ({
     uploadNotebook: mockUploadNotebook,
     runNotebook: mockRunNotebook,
-    scheduleNotebook: mockScheduleNotebook
-  } as undefined as GcpService;
-  const mockNotebook = {
-    toString: mockNotebookContents
-  } as unknown as INotebookModel;
+    scheduleNotebook: mockScheduleNotebook,
+  } as undefined) as GcpService;
+  const mockNotebook = ({
+    toString: mockNotebookContents,
+  } as unknown) as INotebookModel;
 
   const mockProps = {
     gcpService: mockGcpService,
@@ -60,28 +63,34 @@ describe('SchedulerForm', () => {
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
     expect(schedulerForm.find('select[name="masterType"]')).toHaveLength(0);
 
-    simulateFieldChange(schedulerForm, 'select[name="scaleTier"]',
-      'scaleTier', CUSTOM);
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="scaleTier"]',
+      'scaleTier',
+      CUSTOM
+    );
 
     expect(schedulerForm.find('select[name="masterType"]')).toHaveLength(1);
   });
 
   it('Toggles Schedule visibility based on Frequency', async () => {
-
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
     expect(schedulerForm.find('input[name="schedule"]')).toHaveLength(0);
 
-    simulateFieldChange(schedulerForm, 'select[name="scheduleType"]',
-      'scheduleType', RECURRING);
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="scheduleType"]',
+      'scheduleType',
+      RECURRING
+    );
 
     expect(schedulerForm.find('input[name="schedule"]')).toHaveLength(1);
   });
 
-
   it('Submits an immediate job to AI Platform', async () => {
     const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
     const uploadNotebookPromise = Promise.resolve();
-    const runNotebookPromise = Promise.resolve({jobId: 'aiplatform_job_1'});
+    const runNotebookPromise = Promise.resolve({ jobId: 'aiplatform_job_1' });
 
     mockNotebookContents.mockReturnValue(notebookContents);
     mockUploadNotebook.mockReturnValue(uploadNotebookPromise);
@@ -89,8 +98,12 @@ describe('SchedulerForm', () => {
 
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
 
-    simulateFieldChange(schedulerForm, 'input[name="jobId"]',
-      'jobId', 'test_immediate_job');
+    simulateFieldChange(
+      schedulerForm,
+      'input[name="jobId"]',
+      'jobId',
+      'test_immediate_job'
+    );
 
     // Submit the form and wait for an immediate promise to flush other promises
     schedulerForm.find('SubmitButton button').simulate('click');
@@ -98,10 +111,13 @@ describe('SchedulerForm', () => {
 
     schedulerForm.update();
 
-    expect(schedulerForm
-      .contains(<p>Successfully created aiplatform_job_1</p>)).toBe(true);
-    expect(mockGcpService.uploadNotebook)
-      .toHaveBeenCalledWith(notebookContents, gcsPath);
+    expect(
+      schedulerForm.contains(<p>Successfully created aiplatform_job_1</p>)
+    ).toBe(true);
+    expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
+      notebookContents,
+      gcsPath
+    );
     const aiPlatformRequest: RunNotebookRequest = {
       jobId: 'test_immediate_job',
       imageUri: 'gcr.io/deeplearning-platform-release/base-cpu:latest',
@@ -117,38 +133,70 @@ describe('SchedulerForm', () => {
   it('Submits a scheduled job to Cloud Scheduler', async () => {
     const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
     const uploadNotebookPromise = Promise.resolve();
-    const scheduleNotebookPromise = Promise.resolve(
-      {name: 'cloudscheduler_job_1'});
+    const scheduleNotebookPromise = Promise.resolve({
+      name: 'cloudscheduler_job_1',
+    });
 
     mockNotebookContents.mockReturnValue(notebookContents);
     mockUploadNotebook.mockReturnValue(uploadNotebookPromise);
     mockScheduleNotebook.mockReturnValue(scheduleNotebookPromise);
 
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
-    simulateFieldChange(schedulerForm, 'input[name="jobId"]',
-      'jobId', 'test_scheduled_job');
-    simulateFieldChange(schedulerForm, 'select[name="region"]',
-      'region', 'us-east1');
-    simulateFieldChange(schedulerForm, 'select[name="scaleTier"]',
-      'scaleTier', CUSTOM);
-    simulateFieldChange(schedulerForm, 'select[name="masterType"]',
-      'masterType', 'complex_model_m_gpu');
-    simulateFieldChange(schedulerForm, 'select[name="imageUri"]',
-      'imageUri', String(CONTAINER_IMAGES[2].value));
-    simulateFieldChange(schedulerForm, 'select[name="scheduleType"]',
-      'scheduleType', RECURRING);
-    simulateFieldChange(schedulerForm, 'input[name="schedule"]',
-      'schedule', '0 0 * * *');
+    simulateFieldChange(
+      schedulerForm,
+      'input[name="jobId"]',
+      'jobId',
+      'test_scheduled_job'
+    );
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="region"]',
+      'region',
+      'us-east1'
+    );
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="scaleTier"]',
+      'scaleTier',
+      CUSTOM
+    );
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="masterType"]',
+      'masterType',
+      'complex_model_m_gpu'
+    );
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="imageUri"]',
+      'imageUri',
+      String(CONTAINER_IMAGES[2].value)
+    );
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="scheduleType"]',
+      'scheduleType',
+      RECURRING
+    );
+    simulateFieldChange(
+      schedulerForm,
+      'input[name="schedule"]',
+      'schedule',
+      '0 0 * * *'
+    );
     // Submit the form and wait for an immediate promise to flush other promises
     schedulerForm.find('SubmitButton button').simulate('click');
     await immediatePromise();
 
     schedulerForm.update();
 
-    expect(schedulerForm
-      .contains(<p>Successfully created cloudscheduler_job_1</p>)).toBe(true);
-    expect(mockGcpService.uploadNotebook)
-      .toHaveBeenCalledWith(notebookContents, gcsPath);
+    expect(
+      schedulerForm.contains(<p>Successfully created cloudscheduler_job_1</p>)
+    ).toBe(true);
+    expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
+      notebookContents,
+      gcsPath
+    );
     const aiPlatformRequest: RunNotebookRequest = {
       jobId: 'test_scheduled_job',
       imageUri: 'gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest',
@@ -161,6 +209,8 @@ describe('SchedulerForm', () => {
     expect(mockGcpService.scheduleNotebook).toHaveBeenCalledWith(
       aiPlatformRequest,
       'us-east1',
-      'test-project@appspot.gserviceaccount.com', '0 0 * * *');
+      'test-project@appspot.gserviceaccount.com',
+      '0 0 * * *'
+    );
   });
 });

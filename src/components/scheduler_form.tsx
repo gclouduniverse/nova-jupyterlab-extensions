@@ -45,7 +45,6 @@ const SCALE_TIER_LINK =
   'https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers';
 
 class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
-
   constructor(props: SchedulerFormProps) {
     super(props);
 
@@ -53,7 +52,13 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
   }
 
   render() {
-    const {values, submitForm, handleChange, isSubmitting, status} = this.props;
+    const {
+      values,
+      submitForm,
+      handleChange,
+      isSubmitting,
+      status,
+    } = this.props;
     return (
       <form>
         <SchedulerDescription />
@@ -62,63 +67,78 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
           label="Run name"
           name="jobId"
           value={values.jobId}
-          onChange={handleChange} />
+          onChange={handleChange}
+        />
         <SelectInput
           label="Region"
           name="region"
           value={values.region}
           options={REGIONS}
-          onChange={handleChange} />
+          onChange={handleChange}
+        />
         <SelectInput
           label="Scale tier"
           name="scaleTier"
           value={values.scaleTier}
           options={SCALE_TIERS}
-          onChange={this._onScaleTierChanged} />
+          onChange={this._onScaleTierChanged}
+        />
         <p className={css.noTopMargin}>
           A scale tier is a predefined cluster specification.
           <LearnMoreLink href={SCALE_TIER_LINK} />
         </p>
-        {values.scaleTier === CUSTOM &&
+        {values.scaleTier === CUSTOM && (
           <SelectInput
             label="Machine type"
             name="masterType"
             value={values.masterType}
             options={MASTER_TYPES}
-            onChange={handleChange} />
-        }
+            onChange={handleChange}
+          />
+        )}
         <SelectInput
           label="Container"
           name="imageUri"
           value={values.imageUri}
           options={CONTAINER_IMAGES}
-          onChange={handleChange} />
+          onChange={handleChange}
+        />
         <SelectInput
           label="Type"
           name="scheduleType"
           value={values.scheduleType}
           options={SCHEDULE_TYPES}
-          onChange={handleChange} />
-        {values.scheduleType !== SINGLE &&
+          onChange={handleChange}
+        />
+        {values.scheduleType !== SINGLE && (
           <div>
             <TextInput
               label="Frequency"
               name="schedule"
               value={values.schedule}
-              onChange={handleChange} />
+              onChange={handleChange}
+            />
             <p className={css.noTopMargin}>
               Schedule is specified using unix-cron format. You can define a
-              schedule so that your job runs multiple times a day,
-              or runs on specific days and months.
+              schedule so that your job runs multiple times a day, or runs on
+              specific days and months.
               <LearnMoreLink href={SCHEDULE_LINK} />
             </p>
           </div>
-        }
+        )}
         <div className={css.actionBar}>
-          <button className={css.button} onClick={this.props.onDialogClose}
-            type='button'>Cancel</button>
-          <SubmitButton actionPending={isSubmitting} onClick={submitForm}
-            text='Submit' />
+          <button
+            className={css.button}
+            onClick={this.props.onDialogClose}
+            type="button"
+          >
+            Cancel
+          </button>
+          <SubmitButton
+            actionPending={isSubmitting}
+            onClick={submitForm}
+            text="Submit"
+          />
         </div>
         {status && <p>{status}</p>}
       </form>
@@ -126,35 +146,32 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
   }
 
   private _onScaleTierChanged(e: React.ChangeEvent<HTMLSelectElement>) {
-    const {handleChange, setFieldValue} = this.props;
-    setFieldValue('masterType',
-      e.target.value === CUSTOM ? MASTER_TYPES[0].value : '', false);
+    const { handleChange, setFieldValue } = this.props;
+    setFieldValue(
+      'masterType',
+      e.target.value === CUSTOM ? MASTER_TYPES[0].value : '',
+      false
+    );
     handleChange(e);
   }
 }
 
-/** Form Component to submit Scheduled Notebooks */
-export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
-  mapPropsToValues: () => (
-    {
-      jobId: '',
-      imageUri: String(CONTAINER_IMAGES[0].value),
-      region: String(REGIONS[0].value),
-      scaleTier: String(SCALE_TIERS[0].value),
-      masterType: '',
-      scheduleType: SINGLE,
-      schedule: '',
-    }),
-  handleSubmit: submit,
-})(InnerSchedulerForm);
-
 /** Handles the form Submission to AI Platform */
-async function submit(values: SchedulerFormValues,
-  formikBag: FormikBag<Props, SchedulerFormValues>) {
-  const {jobId, imageUri, masterType, scaleTier, scheduleType, schedule,
-    region} = values;
-  const {gcpService, gcpSettings, notebook, notebookName} = formikBag.props;
-  const {setStatus, setSubmitting} = formikBag;
+async function submit(
+  values: SchedulerFormValues,
+  formikBag: FormikBag<Props, SchedulerFormValues>
+) {
+  const {
+    jobId,
+    imageUri,
+    masterType,
+    scaleTier,
+    scheduleType,
+    schedule,
+    region,
+  } = values;
+  const { gcpService, gcpSettings, notebook, notebookName } = formikBag.props;
+  const { setStatus, setSubmitting } = formikBag;
 
   const inputNotebookGcsPath = `${gcpSettings.gcsBucket}/${notebookName}`;
   const outputNotebookGcsPath = inputNotebookGcsPath + '__out.ipynb';
@@ -170,8 +187,10 @@ async function submit(values: SchedulerFormValues,
 
   let status = `Uploading ${notebookName} to ${request.inputNotebookGcsPath}`;
   setStatus(status);
-  await gcpService.uploadNotebook(notebook.toString(),
-    request.inputNotebookGcsPath);
+  await gcpService.uploadNotebook(
+    notebook.toString(),
+    request.inputNotebookGcsPath
+  );
 
   if (scheduleType !== SINGLE && schedule) {
     status = 'Submitting Job to Cloud Scheduler';
@@ -180,13 +199,29 @@ async function submit(values: SchedulerFormValues,
       request,
       gcpSettings.schedulerRegion,
       gcpSettings.serviceAccount,
-      schedule);
+      schedule
+    );
     status = `Successfully created ${job.name}`;
   } else {
-    status = 'Submitting Job to AI Platform'; setStatus(status);
+    status = 'Submitting Job to AI Platform';
+    setStatus(status);
     const job = await gcpService.runNotebook(request);
     status = `Successfully created ${job.jobId}`;
   }
   setStatus(status);
   setSubmitting(false);
 }
+
+/** Form Component to submit Scheduled Notebooks */
+export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
+  mapPropsToValues: () => ({
+    jobId: '',
+    imageUri: String(CONTAINER_IMAGES[0].value),
+    region: String(REGIONS[0].value),
+    scaleTier: String(SCALE_TIERS[0].value),
+    masterType: '',
+    scheduleType: SINGLE,
+    schedule: '',
+  }),
+  handleSubmit: submit,
+})(InnerSchedulerForm);
