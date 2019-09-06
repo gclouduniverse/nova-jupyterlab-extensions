@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {Option} from '../../data';
-import {css} from '../../styles';
+import { Option } from '../../data';
+import { css } from '../../styles';
 
 interface SelectInputProps {
   label?: string;
@@ -13,16 +13,18 @@ interface SelectInputProps {
 /** Funtional Component for select fields */
 // tslint:disable-next-line:enforce-name-casing
 export function SelectInput(props: SelectInputProps) {
-  const {label, options, ...inputProps} = props;
+  const { label, options, ...inputProps } = props;
   return (
     <div className={css.inputContainer}>
       {label && <label>{label}</label>}
       <select className={css.input} {...inputProps}>
-        {options && options.map((o, i) =>
-          <option key={i} value={o.value}>{o.text}</option>
-        )}
+        {options &&
+          options.map((o, i) => (
+            <option key={i} value={o.value}>
+              {o.text}
+            </option>
+          ))}
       </select>
     </div>
   );
 }
-

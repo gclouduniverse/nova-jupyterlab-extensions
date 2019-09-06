@@ -5,6 +5,7 @@ import * as React from 'react';
 import { CUSTOM, RECURRING, CONTAINER_IMAGES } from '../data';
 import { GcpService, RunNotebookRequest } from '../service/gcp';
 import { SchedulerForm } from './scheduler_form';
+import { Message } from './shared/message';
 
 // Simulates a form input change
 function simulateFieldChange(
@@ -24,9 +25,30 @@ function immediatePromise(): Promise<void> {
   return new Promise(r => setTimeout(r));
 }
 
+// Function to resolve when triggered to allow testing multiple async promises
+function triggeredResolver(
+  resolveValue?: any
+): { resolve: () => void; promise: Promise<any> } {
+  let done = false;
+  const promise = new Promise(r => {
+    const runner = async () => {
+      while (!done) {
+        await immediatePromise();
+      }
+      r(resolveValue);
+    };
+    runner();
+  });
+  const resolve = () => {
+    done = true;
+  };
+  return { resolve, promise };
+}
+
 describe('SchedulerForm', () => {
   const notebookName = 'Test Notebook.ipynb';
   const notebookContents = '{"notebook": "test"}';
+  const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
 
   const mockUploadNotebook = jest.fn();
   const mockRunNotebook = jest.fn();
@@ -131,13 +153,12 @@ describe('SchedulerForm', () => {
   });
 
   it('Submits an immediate job to AI Platform', async () => {
-    const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
-    const uploadNotebookPromise = Promise.resolve();
-    const runNotebookPromise = Promise.resolve({ jobId: 'aiplatform_job_1' });
+    const uploadNotebookPromise = triggeredResolver();
+    const runNotebookPromise = triggeredResolver({ jobId: 'aiplatform_job_1' });
 
     mockNotebookContents.mockReturnValue(notebookContents);
-    mockUploadNotebook.mockReturnValue(uploadNotebookPromise);
-    mockRunNotebook.mockReturnValue(runNotebookPromise);
+    mockUploadNotebook.mockReturnValue(uploadNotebookPromise.promise);
+    mockRunNotebook.mockReturnValue(runNotebookPromise.promise);
 
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
 
@@ -151,12 +172,45 @@ describe('SchedulerForm', () => {
     // Submit the form and wait for an immediate promise to flush other promises
     schedulerForm.find('SubmitButton button').simulate('click');
     await immediatePromise();
-
     schedulerForm.update();
-
     expect(
-      schedulerForm.contains(<p>Successfully created aiplatform_job_1</p>)
+      schedulerForm.contains(
+        <Message
+          asActivity={true}
+          asError={false}
+          text={
+            'Uploading Test Notebook.ipynb to gs://test-project/notebooks/Test Notebook.ipynb'
+          }
+        />
+      )
     ).toBe(true);
+
+    uploadNotebookPromise.resolve();
+    await uploadNotebookPromise.promise;
+    schedulerForm.update();
+    expect(
+      schedulerForm.contains(
+        <Message
+          asError={false}
+          asActivity={true}
+          text={'Submitting Job to AI Platform'}
+        />
+      )
+    ).toBe(true);
+
+    runNotebookPromise.resolve();
+    await runNotebookPromise.promise;
+    schedulerForm.update();
+    expect(
+      schedulerForm.contains(
+        <Message
+          asError={false}
+          asActivity={false}
+          text={'Successfully created aiplatform_job_1'}
+        />
+      )
+    ).toBe(true);
+
     expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
       notebookContents,
       gcsPath
@@ -174,15 +228,14 @@ describe('SchedulerForm', () => {
   });
 
   it('Submits a scheduled job to Cloud Scheduler', async () => {
-    const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
-    const uploadNotebookPromise = Promise.resolve();
-    const scheduleNotebookPromise = Promise.resolve({
+    const uploadNotebookPromise = triggeredResolver();
+    const scheduleNotebookPromise = triggeredResolver({
       name: 'cloudscheduler_job_1',
     });
 
     mockNotebookContents.mockReturnValue(notebookContents);
-    mockUploadNotebook.mockReturnValue(uploadNotebookPromise);
-    mockScheduleNotebook.mockReturnValue(scheduleNotebookPromise);
+    mockUploadNotebook.mockReturnValue(uploadNotebookPromise.promise);
+    mockScheduleNotebook.mockReturnValue(scheduleNotebookPromise.promise);
 
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
     simulateFieldChange(
@@ -230,11 +283,30 @@ describe('SchedulerForm', () => {
     // Submit the form and wait for an immediate promise to flush other promises
     schedulerForm.find('SubmitButton button').simulate('click');
     await immediatePromise();
-
+    uploadNotebookPromise.resolve();
+    await uploadNotebookPromise.promise;
     schedulerForm.update();
-
     expect(
-      schedulerForm.contains(<p>Successfully created cloudscheduler_job_1</p>)
+      schedulerForm.contains(
+        <Message
+          asError={false}
+          asActivity={true}
+          text={'Submitting Job to Cloud Scheduler'}
+        />
+      )
+    ).toBe(true);
+
+    scheduleNotebookPromise.resolve();
+    await scheduleNotebookPromise.promise;
+    schedulerForm.update();
+    expect(
+      schedulerForm.contains(
+        <Message
+          asError={false}
+          asActivity={false}
+          text={'Successfully created cloudscheduler_job_1'}
+        />
+      )
     ).toBe(true);
     expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
       notebookContents,
@@ -252,8 +324,87 @@ describe('SchedulerForm', () => {
     expect(mockGcpService.scheduleNotebook).toHaveBeenCalledWith(
       aiPlatformRequest,
       'us-east1',
-      'test-project@appspot.gserviceaccount.com',
       '0 0 * * *'
     );
+  });
+
+  it('Fails to upload Notebook to GCS', async () => {
+    mockNotebookContents.mockReturnValue(notebookContents);
+    mockUploadNotebook.mockRejectedValue('Unable to upload');
+
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+
+    simulateFieldChange(
+      schedulerForm,
+      'input[name="jobId"]',
+      'jobId',
+      'test_failed_upload'
+    );
+
+    // Submit the form and wait for an immediate promise to flush other promises
+    schedulerForm.find('SubmitButton button').simulate('click');
+    await immediatePromise();
+    schedulerForm.update();
+    expect(
+      schedulerForm.contains(
+        <Message
+          asActivity={false}
+          asError={true}
+          text={
+            'Unable to upload Test Notebook.ipynb to gs://test-project/notebooks/Test Notebook.ipynb'
+          }
+        />
+      )
+    ).toBe(true);
+
+    expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
+      notebookContents,
+      gcsPath
+    );
+    expect(mockGcpService.runNotebook).not.toHaveBeenCalled();
+  });
+
+  it('Fails to submit job', async () => {
+    mockNotebookContents.mockReturnValue(notebookContents);
+    mockUploadNotebook.mockResolvedValue(true);
+    mockRunNotebook.mockRejectedValue('Unable to run Notebook');
+
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+
+    simulateFieldChange(
+      schedulerForm,
+      'input[name="jobId"]',
+      'jobId',
+      'test_failed_job_submission'
+    );
+
+    // Submit the form and wait for an immediate promise to flush other promises
+    schedulerForm.find('SubmitButton button').simulate('click');
+    await immediatePromise();
+    schedulerForm.update();
+    expect(
+      schedulerForm.contains(
+        <Message
+          asActivity={false}
+          asError={true}
+          text={'Unable to submit job'}
+        />
+      )
+    ).toBe(true);
+
+    expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
+      notebookContents,
+      gcsPath
+    );
+    const aiPlatformRequest: RunNotebookRequest = {
+      jobId: 'test_failed_job_submission',
+      imageUri: 'gcr.io/deeplearning-platform-release/base-cpu:latest',
+      inputNotebookGcsPath: gcsPath,
+      masterType: '',
+      outputNotebookGcsPath: `${gcsPath}__out.ipynb`,
+      scaleTier: 'BASIC',
+      region: 'us-central1',
+    };
+    expect(mockGcpService.runNotebook).toHaveBeenCalledWith(aiPlatformRequest);
   });
 });

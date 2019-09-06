@@ -1,0 +1,175 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Initializer Sets schedulerRegion when conditions are met 1`] = `
+<div
+  className="column_fghohlb"
+/>
+`;
+
+exports[`Initializer Shows AppEngineCreator 1`] = `
+<div
+  className="column_fghohlb"
+>
+  <AppEngineCreator
+    gcpService={
+      Object {
+        "getProjectState": [MockFunction] {
+          "calls": Array [
+            Array [],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": Promise {},
+            },
+          ],
+        },
+      }
+    }
+    onDialogClose={[MockFunction]}
+    onStateChange={[Function]}
+  />
+</div>
+`;
+
+exports[`Initializer Shows CloudFunctionDeployer 1`] = `
+<div
+  className="column_fghohlb"
+>
+  <CloudFunctionDeployer
+    gcpService={
+      Object {
+        "getProjectState": [MockFunction] {
+          "calls": Array [
+            Array [],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": Promise {},
+            },
+          ],
+        },
+      }
+    }
+    onCreated={[Function]}
+    onDialogClose={[MockFunction]}
+    region="us-central1"
+  />
+</div>
+`;
+
+exports[`Initializer Shows GcsBucketSelector 1`] = `
+<div
+  className="column_fghohlb"
+>
+  <GcsBucketSelector
+    buckets={Array []}
+    gcpService={
+      Object {
+        "getProjectState": [MockFunction] {
+          "calls": Array [
+            Array [],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": Promise {},
+            },
+          ],
+        },
+      }
+    }
+    onDialogClose={[MockFunction]}
+    onSelected={[Function]}
+  />
+</div>
+`;
+
+exports[`Initializer Shows loaded Message then ServiceEnabler: Shows Message 1`] = `
+<div
+  className="column_fghohlb"
+>
+  <Message
+    asActivity={true}
+    text="Validating project configuration..."
+  />
+</div>
+`;
+
+exports[`Initializer Shows loaded Message then ServiceEnabler: Shows ServiceEnabler 1`] = `
+<div
+  className="column_fghohlb"
+>
+  <ServiceEnabler
+    gcpService={
+      Object {
+        "getProjectState": [MockFunction] {
+          "calls": Array [
+            Array [],
+          ],
+          "results": Array [
+            Object {
+              "type": "return",
+              "value": Promise {},
+            },
+          ],
+        },
+      }
+    }
+    onDialogClose={[MockFunction]}
+    onStateChange={[Function]}
+    projectState={
+      Object {
+        "allServicesEnabled": false,
+        "gcsBuckets": Array [],
+        "hasCloudFunction": false,
+        "projectId": "test-project",
+        "schedulerRegion": "",
+        "serviceStatuses": Array [
+          Object {
+            "enabled": false,
+            "service": Object {
+              "documentation": "https://cloud.google.com/compute/",
+              "endpoint": "compute.googleapis.com",
+              "name": "Compute Engine API",
+            },
+          },
+          Object {
+            "enabled": false,
+            "service": Object {
+              "documentation": "https://cloud.google.com/storage/",
+              "endpoint": "storage-api.googleapis.com",
+              "name": "Cloud Storage API",
+            },
+          },
+          Object {
+            "enabled": false,
+            "service": Object {
+              "documentation": "https://cloud.google.com/scheduler",
+              "endpoint": "cloudscheduler.googleapis.com",
+              "name": "Cloud Scheduler API",
+            },
+          },
+          Object {
+            "enabled": false,
+            "service": Object {
+              "documentation": "https://cloud.google.com/ai-platform/",
+              "endpoint": "ml.googleapis.com",
+              "name": "AI Platform Training API",
+            },
+          },
+          Object {
+            "enabled": false,
+            "service": Object {
+              "documentation": "https://cloud.google.com/functions/",
+              "endpoint": "cloudfunctions.googleapis.com",
+              "name": "Cloud Functions API",
+            },
+          },
+        ],
+      }
+    }
+  />
+</div>
+`;

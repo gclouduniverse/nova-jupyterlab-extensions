@@ -1,10 +1,10 @@
 import * as React from 'react';
-import {Info} from "@material-ui/icons";
-import {withStyles} from '@material-ui/core';
-import {classes, stylesheet} from 'typestyle';
+import { Info } from '@material-ui/icons';
+import { withStyles } from '@material-ui/core';
+import { classes, stylesheet } from 'typestyle';
 
-import {css, COLORS} from '../../styles';
-import {Progress} from './progress';
+import { css, COLORS } from '../../styles';
+import { Progress } from './progress';
 
 interface Props {
   asError?: boolean;
@@ -16,14 +16,14 @@ const BlueInfo = withStyles({
   root: {
     color: COLORS.link,
     fontSize: '16px',
-  }
+  },
 })(Info);
 
 const RedError = withStyles({
   root: {
     color: COLORS.red,
     fontSize: '16px',
-  }
+  },
 })(Info);
 
 const localStyles = stylesheet({
@@ -42,16 +42,26 @@ const localStyles = stylesheet({
   },
   text: {
     paddingLeft: '5px',
-  }
+  },
 });
 
 /** Shared message component. */
-export function Message(props: Props) {
+export function Message(props: Props): JSX.Element {
   return (
-    <div className={classes(css.row, localStyles.message,
-      props.asError ? localStyles.error : localStyles.info)}>
-      {props.asActivity ? <Progress /> :
-        props.asError ? <RedError /> : <BlueInfo />}
+    <div
+      className={classes(
+        css.row,
+        localStyles.message,
+        props.asError ? localStyles.error : localStyles.info
+      )}
+    >
+      {props.asActivity ? (
+        <Progress />
+      ) : props.asError ? (
+        <RedError />
+      ) : (
+        <BlueInfo />
+      )}
       <span className={localStyles.text}>{props.text}</span>
     </div>
   );

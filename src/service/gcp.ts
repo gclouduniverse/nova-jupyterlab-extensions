@@ -398,6 +398,8 @@ export class GcpService {
     // TODO need to check if image exist
     const imageUriPrefix = 'gcr.io/deeplearning-platform-release/';
     const runtimeEnv = await this._getRuntimeEnv();
+    if (!runtimeEnv) return '';
+
     const lastDotIndex = runtimeEnv.lastIndexOf('.');
     return (
       imageUriPrefix +
@@ -450,12 +452,13 @@ export class GcpService {
     }
   }
 
-  private async _getRuntimeEnv(): Promise<any> {
+  private async _getRuntimeEnv(): Promise<string> {
     try {
       const response = await fetch(GcpService.RUNTIME_ENV_PATH);
       return await response.text();
     } catch (err) {
       console.error('Unable to obtain runtime environment');
+      return '';
     }
   }
 

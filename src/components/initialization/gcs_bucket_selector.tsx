@@ -26,23 +26,22 @@ interface State {
 }
 
 const BUCKET_NAMING_LINK = 'https://cloud.google.com/storage/docs/naming';
-const CREATE_NEW_OPTION: Option = {text: 'Create new...', value: '__new__'};
+const CREATE_NEW_OPTION: Option = { text: 'Create new...', value: '__new__' };
 
 /** Responsible for selecting/creating a GCS bucket. */
 export class GcsBucketSelector extends React.Component<Props, State> {
-
   constructor(props: Props) {
     super(props);
-    const bucket = props.buckets.length ? props.buckets[0] :
-      String(CREATE_NEW_OPTION.value);
-
+    const bucket = props.buckets.length
+      ? props.buckets[0]
+      : String(CREATE_NEW_OPTION.value);
 
     this.state = {
       actionPending: false,
       createNewBucket: bucket === CREATE_NEW_OPTION.value,
       bucket,
       bucketOptions: props.buckets
-        .map((b): Option => ({text: b, value: b}))
+        .map((b): Option => ({ text: b, value: b }))
         .concat([CREATE_NEW_OPTION]),
     };
 
@@ -51,34 +50,54 @@ export class GcsBucketSelector extends React.Component<Props, State> {
   }
 
   render() {
-    const {actionPending, bucketOptions, createNewBucket, hasError,
-      message} = this.state;
+    const {
+      actionPending,
+      bucketOptions,
+      createNewBucket,
+      hasError,
+      message,
+    } = this.state;
     return (
       <div className={css.column}>
         <p>
           Select an existing or
-          <LearnMoreLink href={BUCKET_NAMING_LINK} text='create a new' />
+          <LearnMoreLink href={BUCKET_NAMING_LINK} text="create a new" />
           Cloud Storage bucket to store your Notebook sources and outputs.
         </p>
         <div>
-          <SelectInput label='Bucket' name='bucket'
-            options={bucketOptions} onChange={this._onBucketSelected} />
-          {createNewBucket &&
-            <TextInput label='New Bucket' name='newBucket'
-              onChange={(e) => this.setState({newBucket: e.target.value})} />}
+          <SelectInput
+            label="Bucket"
+            name="bucket"
+            options={bucketOptions}
+            onChange={this._onBucketSelected}
+          />
+          {createNewBucket && (
+            <TextInput
+              label="New Bucket"
+              name="newBucket"
+              onChange={e => this.setState({ newBucket: e.target.value })}
+            />
+          )}
         </div>
-        {message && <Message
-          asActivity={!hasError && actionPending}
-          asError={hasError}
-          text={message} />
+        {message && (
+          <Message
+            asActivity={!hasError && actionPending}
+            asError={hasError}
+            text={message}
+          />
+        )}
+        {
+          <div className={css.actionBar}>
+            <button className={css.button} onClick={this.props.onDialogClose}>
+              Cancel
+            </button>
+            <SubmitButton
+              actionPending={actionPending}
+              onClick={this._onSubmit}
+              text={createNewBucket ? 'Create' : 'Select'}
+            />
+          </div>
         }
-        {<div className={css.actionBar}>
-          <button className={css.button} onClick={this.props.onDialogClose}>
-            Cancel</button>
-          <SubmitButton actionPending={actionPending}
-            onClick={this._onSubmit}
-            text={createNewBucket ? 'Create' : 'Select'} />
-        </div>}
       </div>
     );
   }
@@ -86,12 +105,12 @@ export class GcsBucketSelector extends React.Component<Props, State> {
   private _onBucketSelected(e: React.ChangeEvent<HTMLSelectElement>) {
     const bucket = e.target.value;
     const createNewBucket = bucket === CREATE_NEW_OPTION.value;
-    this.setState({bucket, createNewBucket});
+    this.setState({ bucket, createNewBucket });
   }
 
   private async _onSubmit() {
-    let {bucket} = this.state;
-    const {createNewBucket, newBucket} = this.state;
+    let { bucket } = this.state;
+    const { createNewBucket, newBucket } = this.state;
     if (createNewBucket) {
       if (newBucket && newBucket.startsWith('gs://')) {
         try {
@@ -108,7 +127,7 @@ export class GcsBucketSelector extends React.Component<Props, State> {
       } else {
         this.setState({
           hasError: true,
-          message: 'Please provide a valid bucket name starting with gs://'
+          message: 'Please provide a valid bucket name starting with gs://',
         });
         return;
       }
@@ -121,16 +140,12 @@ export class GcsBucketSelector extends React.Component<Props, State> {
     this.setState({
       actionPending: true,
       hasError: false,
-      message: `Creating Cloud Storage bucket ${bucket}...`
+      message: `Creating Cloud Storage bucket ${bucket}...`,
     });
-    try {
-      await this.props.gcpService.createBucket(bucket.slice(5)); // strip gs://
-      this.setState({
-        actionPending: false,
-        message: `Successfully created Cloud Storage bucket ${bucket}`
-      });
-    } catch (err) {
-      throw err;
-    }
+    await this.props.gcpService.createBucket(bucket.slice(5)); // strip gs://
+    this.setState({
+      actionPending: false,
+      message: `Successfully created Cloud Storage bucket ${bucket}`,
+    });
   }
 }

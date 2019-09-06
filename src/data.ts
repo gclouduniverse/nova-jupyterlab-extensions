@@ -12,13 +12,15 @@ export const RECURRING = 'recurring';
 /** Interface for an <option> inside a <select> */
 export interface Option {
   text: string;
-  value: string|number;
+  value: string | number;
   disabled?: boolean;
 }
 
 /** Returns an option whose value matches the given value. */
 export function findOptionByValue<T extends Option>(
-    options: T[], value: string|number|undefined): T|undefined {
+  options: T[],
+  value: string | number | undefined
+): T | undefined {
   if (value === undefined) return undefined;
   return options.find(option => option.value === value);
 }
@@ -28,18 +30,18 @@ export function findOptionByValue<T extends Option>(
  * https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs#scaletier
  */
 export const CONTAINER_IMAGES: Option[] = [
-  {value: `${GCR_PREFIX}/base-cpu:latest`, text: 'Python'},
+  { value: `${GCR_PREFIX}/base-cpu:latest`, text: 'Python' },
   {
     value: `${GCR_PREFIX}/tf-cpu.1-14:latest`,
-    text: 'TensorFlow 1.14 (CPU only)'
+    text: 'TensorFlow 1.14 (CPU only)',
   },
-  {value: `${GCR_PREFIX}/tf-gpu.1-14:latest`, text: 'TensorFlow 1.14 (GPU)'},
-  {value: `${GCR_PREFIX}/tf2-cpu:latest`, text: 'TensorFlow 2.0 (CPU only)'},
-  {value: `${GCR_PREFIX}/tf2-gpu:latest`, text: 'TensorFlow 2.0 (GPU)'},
-  {value: `${GCR_PREFIX}/pytorch-cpu:latest`, text: 'PyTorch (CPU only)'},
-  {value: `${GCR_PREFIX}/pytorch-gpu:latest`, text: 'PyTorch (GPU)'},
-  {value: `${GCR_PREFIX}/r-cpu:latest`, text: 'R (with r-essentials)'},
-  {value: `${GCR_PREFIX}/r-cpu:latest`, text: 'R (with r-essentials)'},
+  { value: `${GCR_PREFIX}/tf-gpu.1-14:latest`, text: 'TensorFlow 1.14 (GPU)' },
+  { value: `${GCR_PREFIX}/tf2-cpu:latest`, text: 'TensorFlow 2.0 (CPU only)' },
+  { value: `${GCR_PREFIX}/tf2-gpu:latest`, text: 'TensorFlow 2.0 (GPU)' },
+  { value: `${GCR_PREFIX}/pytorch-cpu:latest`, text: 'PyTorch (CPU only)' },
+  { value: `${GCR_PREFIX}/pytorch-gpu:latest`, text: 'PyTorch (GPU)' },
+  { value: `${GCR_PREFIX}/r-cpu:latest`, text: 'R (with r-essentials)' },
+  { value: `${GCR_PREFIX}/r-cpu:latest`, text: 'R (with r-essentials)' },
 ];
 
 /**
@@ -47,18 +49,18 @@ export const CONTAINER_IMAGES: Option[] = [
  * https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs#scaletier
  */
 export const SCALE_TIERS: Option[] = [
-  {value: 'BASIC', text: 'Single worker instance'},
+  { value: 'BASIC', text: 'Single worker instance' },
   {
     value: 'STANDARD_1',
-    text: 'Many worker instances and a few parameter servers'
+    text: 'Many worker instances and a few parameter servers',
   },
   {
     value: 'PREMIUM_1',
-    text: 'A large number of workers with many parameter servers'
+    text: 'A large number of workers with many parameter servers',
   },
-  {value: 'BASIC_GPU', text: 'A single worker instance with a GPU'},
-  {value: 'BASIC_TPU', text: 'A single worker instance with a Cloud TPU'},
-  {value: CUSTOM, text: 'Custom machine type configuration'},
+  { value: 'BASIC_GPU', text: 'A single worker instance with a GPU' },
+  { value: 'BASIC_TPU', text: 'A single worker instance with a Cloud TPU' },
+  { value: CUSTOM, text: 'Custom machine type configuration' },
 ];
 
 /**
@@ -66,30 +68,33 @@ export const SCALE_TIERS: Option[] = [
  * https://cloud.google.com/ml-engine/docs/machine-types#compare-machine-types
  */
 export const MASTER_TYPES: Option[] = [
-  {value: 'standard', text: '4 CPUs, 15 GB RAM, No Accelerators'},
-  {value: 'large_model', text: '8 CPUs, 52 GB RAM, No Accelerators'},
-  {value: 'complex_model_s', text: '8 CPUs, 7.2 GB RAM, No Accelerators'},
-  {value: 'complex_model_m', text: '16 CPUs, 14.4 GB RAM, No Accelerators'},
-  {value: 'complex_model_l', text: '32 CPUs, 28.8 GB RAM, No Accelerators'},
-  {value: 'standard_gpu', text: '8 CPUs, 30 GB RAM, 1 NVIDIA Tesla K80 GPU'},
+  { value: 'standard', text: '4 CPUs, 15 GB RAM, No Accelerators' },
+  { value: 'large_model', text: '8 CPUs, 52 GB RAM, No Accelerators' },
+  { value: 'complex_model_s', text: '8 CPUs, 7.2 GB RAM, No Accelerators' },
+  { value: 'complex_model_m', text: '16 CPUs, 14.4 GB RAM, No Accelerators' },
+  { value: 'complex_model_l', text: '32 CPUs, 28.8 GB RAM, No Accelerators' },
+  { value: 'standard_gpu', text: '8 CPUs, 30 GB RAM, 1 NVIDIA Tesla K80 GPU' },
   {
     value: 'complex_model_m_gpu',
-    text: '4 CPUs, 15 GB RAM, 4 NVIDIA Tesla K80 GPUs'
+    text: '4 CPUs, 15 GB RAM, 4 NVIDIA Tesla K80 GPUs',
   },
   {
     value: 'complex_model_l_gpu',
-    text: '4 CPUs, 15 GB RAM, 8 NVIDIA Tesla K80 GPUs'
+    text: '4 CPUs, 15 GB RAM, 8 NVIDIA Tesla K80 GPUs',
   },
-  {value: 'standard_p100', text: '8 CPUs, 30 GB RAM, 1 NVIDIA Tesla P100 GPU'},
+  {
+    value: 'standard_p100',
+    text: '8 CPUs, 30 GB RAM, 1 NVIDIA Tesla P100 GPU',
+  },
   {
     value: 'complex_model_m_p100',
-    text: '4 CPUs, 15 GB RAM, 4 NVIDIA Tesla K80 GPUs'
+    text: '4 CPUs, 15 GB RAM, 4 NVIDIA Tesla K80 GPUs',
   },
   {
     value: 'complex_model_l_gpu',
-    text: '4 CPUs, 15 GB RAM, 8 NVIDIA Tesla K80 GPUs'
+    text: '4 CPUs, 15 GB RAM, 8 NVIDIA Tesla K80 GPUs',
   },
-  {value: 'cloud_tpu', text: '8 TPU cores'},
+  { value: 'cloud_tpu', text: '8 TPU cores' },
 ];
 
 /**
@@ -136,6 +141,6 @@ export const REGIONS: Option[] = [
 
 /** Single execution or recurring schedule */
 export const SCHEDULE_TYPES: Option[] = [
-  {value: SINGLE, text: 'Single run'},
-  {value: RECURRING, text: 'Recurring run'},
+  { value: SINGLE, text: 'Single run' },
+  { value: RECURRING, text: 'Recurring run' },
 ];

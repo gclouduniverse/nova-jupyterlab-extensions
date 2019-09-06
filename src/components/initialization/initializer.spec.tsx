@@ -7,20 +7,11 @@ import { ISettingRegistry } from '@jupyterlab/coreutils';
 
 describe('Initializer', () => {
   const mockGetProjectState = jest.fn();
-  const mockEnableServices = jest.fn();
-  const mockCreateBucket = jest.fn();
-  const mockCreateCloudFunction = jest.fn();
   const mockDialogClose = jest.fn();
   const mockGcpService = ({
-    enableServices: mockEnableServices,
-    createCloudFunction: mockCreateCloudFunction,
-    createBucket: mockCreateBucket,
     getProjectState: mockGetProjectState,
   } as undefined) as GcpService;
-  const mockSettingsSave = jest.fn();
-  const mockSettings = ({
-    save: mockSettingsSave,
-  } as unknown) as ISettingRegistry.ISettings;
+  const mockSettingsSet = jest.fn();
   let mockProjectState: ProjectState;
 
   beforeEach(() => {
@@ -28,9 +19,9 @@ describe('Initializer', () => {
     mockProjectState = {
       allServicesEnabled: false,
       hasCloudFunction: false,
-      hasGcsBucket: false,
+      gcsBuckets: [],
       projectId: 'test-project',
-      ready: false,
+      schedulerRegion: '',
       serviceStatuses: [
         {
           enabled: false,
@@ -76,7 +67,11 @@ describe('Initializer', () => {
     };
   });
 
-  it('Shows message while retrieving project state', async () => {
+  it('Shows loaded Message then ServiceEnabler', async () => {
+    const mockSettings = ({
+      composite: {},
+      set: mockSettingsSet,
+    } as unknown) as ISettingRegistry.ISettings;
     const projectStatePromise = Promise.resolve(mockProjectState);
     mockGetProjectState.mockReturnValue(projectStatePromise);
 
@@ -87,113 +82,21 @@ describe('Initializer', () => {
         settings={mockSettings}
       />
     );
-    expect(initializer).toMatchSnapshot('Validating project configuration');
+    expect(initializer).toMatchSnapshot('Shows Message');
 
     await projectStatePromise;
-    expect(initializer).toMatchSnapshot('Shows initialization form');
+    expect(initializer).toMatchSnapshot('Shows ServiceEnabler');
+    expect(mockSettingsSet).toHaveBeenCalledWith('projectId', 'test-project');
   });
 
-  it('Issues requests to configure project on click', async () => {
-    // All mocks resolve
-    const projectStatePromise = Promise.resolve(mockProjectState);
-    const enableServicesPromise = Promise.resolve(true);
-    const createBucketPromise = Promise.resolve(true);
-    const createCloudFunctionPromise = Promise.resolve(true);
-    mockGetProjectState.mockReturnValue(projectStatePromise);
-    mockEnableServices.mockReturnValue(enableServicesPromise);
-    mockCreateBucket.mockReturnValue(createBucketPromise);
-    mockCreateCloudFunction.mockReturnValue(createCloudFunctionPromise);
-
-    const initializer = shallow(
-      <Initializer
-        gcpService={mockGcpService}
-        onDialogClose={mockDialogClose}
-        settings={mockSettings}
-      />
-    );
-    await projectStatePromise;
-    initializer.find('SubmitButton').simulate('click');
-    expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(true);
-
-    await enableServicesPromise;
-    expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(false);
-    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>)).toBe(
-      true
-    );
-    expect(initializer.contains(<p>Creating Cloud Function...</p>)).toBe(true);
-
-    await createBucketPromise;
-    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>)).toBe(
-      false
-    );
-
-    await createCloudFunctionPromise;
-    expect(initializer.contains(<p>Creating Cloud Function...</p>)).toBe(false);
-
-    expect(mockEnableServices).toHaveBeenCalledWith([
-      'compute.googleapis.com',
-      'storage-api.googleapis.com',
-      'cloudscheduler.googleapis.com',
-      'ml.googleapis.com',
-      'cloudfunctions.googleapis.com',
-    ]);
-    expect(mockCreateCloudFunction).toHaveBeenCalledWith('us-central1');
-    expect(mockCreateBucket).toHaveBeenCalledWith('test-project');
-  });
-
-  it('Fails to enable all services', async () => {
-    const projectStatePromise = Promise.resolve(mockProjectState);
-    const error = { error: 'Cannot Enable Services' };
-    const enableServicesPromise = Promise.reject(error);
-    mockGetProjectState.mockReturnValue(projectStatePromise);
-    mockEnableServices.mockReturnValue(enableServicesPromise);
-    expect.assertions(7);
-
-    const initializer = shallow(
-      <Initializer
-        gcpService={mockGcpService}
-        onDialogClose={mockDialogClose}
-        settings={mockSettings}
-      />
-    );
-    await projectStatePromise;
-    initializer.find('SubmitButton').simulate('click');
-    expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(true);
-
-    try {
-      await enableServicesPromise;
-    } catch (err) {
-      expect(err).toEqual(error);
-    }
-    expect(initializer.contains(<p>Enabling GCP API(s)...</p>)).toBe(false);
-    expect(
-      initializer.contains(
-        <p className="error">Unable to enable necessary GCP APIs</p>
-      )
-    ).toBe(true);
-
-    expect(mockEnableServices).toHaveBeenCalledWith([
-      'compute.googleapis.com',
-      'storage-api.googleapis.com',
-      'cloudscheduler.googleapis.com',
-      'ml.googleapis.com',
-      'cloudfunctions.googleapis.com',
-    ]);
-    expect(mockCreateCloudFunction).not.toHaveBeenCalled();
-    expect(mockCreateBucket).not.toHaveBeenCalled();
-  });
-
-  it('Fails to create Cloud Function', async () => {
-    const projectStatePromise = Promise.resolve(mockProjectState);
-    const error = { error: 'Cannot Create Cloud Function' };
-    const createBucketPromise = Promise.resolve(true);
-    const createCloudFunctionPromise = Promise.reject(error);
+  it('Shows AppEngineCreator', async () => {
+    const mockSettings = ({
+      composite: { projectId: 'test-project' },
+      set: mockSettingsSet,
+    } as unknown) as ISettingRegistry.ISettings;
     mockProjectState.allServicesEnabled = true;
-    mockProjectState.serviceStatuses.forEach(s => (s.enabled = true));
+    const projectStatePromise = Promise.resolve(mockProjectState);
     mockGetProjectState.mockReturnValue(projectStatePromise);
-    mockCreateBucket.mockReturnValue(createBucketPromise);
-    mockCreateCloudFunction.mockReturnValue(createCloudFunctionPromise);
-    expect.assertions(8);
 
     const initializer = shallow(
       <Initializer
@@ -202,43 +105,79 @@ describe('Initializer', () => {
         settings={mockSettings}
       />
     );
+
     await projectStatePromise;
-    initializer.find('SubmitButton').simulate('click');
-    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>)).toBe(
-      true
-    );
-    expect(initializer.contains(<p>Creating Cloud Function...</p>)).toBe(true);
-
-    await createBucketPromise;
-    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>)).toBe(
-      false
-    );
-    try {
-      await createCloudFunctionPromise;
-    } catch (err) {
-      expect(err).toEqual(error);
-    }
-    expect(
-      initializer.contains(
-        <p className="error">Unable to create Cloud Function</p>
-      )
-    ).toBe(true);
-
-    expect(mockEnableServices).not.toHaveBeenCalled();
-    expect(mockCreateCloudFunction).toHaveBeenCalledWith('us-central1');
-    expect(mockCreateBucket).toHaveBeenCalledWith('test-project');
+    expect(initializer).toMatchSnapshot();
+    expect(mockSettingsSet).not.toHaveBeenCalled();
   });
 
-  it('Fails to create GCS Bucket', async () => {
-    const projectStatePromise = Promise.resolve(mockProjectState);
-    const error = { error: 'Cannot Create GCS Bucket' };
-    const createBucketPromise = Promise.reject(error);
+  it('Shows GcsBucketSelector', async () => {
+    const mockSettings = ({
+      composite: {
+        projectId: 'test-project',
+      },
+      set: mockSettingsSet,
+    } as unknown) as ISettingRegistry.ISettings;
+
     mockProjectState.allServicesEnabled = true;
-    mockProjectState.serviceStatuses.forEach(s => (s.enabled = true));
+    mockProjectState.schedulerRegion = 'us-central1';
+    const projectStatePromise = Promise.resolve(mockProjectState);
+    mockGetProjectState.mockReturnValue(projectStatePromise);
+
+    const initializer = shallow(
+      <Initializer
+        gcpService={mockGcpService}
+        onDialogClose={mockDialogClose}
+        settings={mockSettings}
+      />
+    );
+
+    await projectStatePromise;
+    expect(initializer).toMatchSnapshot();
+    expect(mockSettingsSet).not.toHaveBeenCalled();
+  });
+
+  it('Shows CloudFunctionDeployer', async () => {
+    const mockSettings = ({
+      composite: {
+        gcsBucket: 'gs://test-bucket1',
+        projectId: 'test-project',
+      },
+      set: mockSettingsSet,
+    } as unknown) as ISettingRegistry.ISettings;
+
+    mockProjectState.allServicesEnabled = true;
+    mockProjectState.schedulerRegion = 'us-central1';
+    const projectStatePromise = Promise.resolve(mockProjectState);
+    mockGetProjectState.mockReturnValue(projectStatePromise);
+
+    const initializer = shallow(
+      <Initializer
+        gcpService={mockGcpService}
+        onDialogClose={mockDialogClose}
+        settings={mockSettings}
+      />
+    );
+
+    await projectStatePromise;
+    expect(initializer).toMatchSnapshot();
+    expect(mockSettingsSet).not.toHaveBeenCalled();
+  });
+
+  it('Sets schedulerRegion when conditions are met', async () => {
+    const mockSettings = ({
+      composite: {
+        gcsBucket: 'gs://test-bucket1',
+        projectId: 'test-project',
+      },
+      set: mockSettingsSet,
+    } as unknown) as ISettingRegistry.ISettings;
+
+    mockProjectState.allServicesEnabled = true;
+    mockProjectState.schedulerRegion = 'us-central1';
     mockProjectState.hasCloudFunction = true;
+    const projectStatePromise = Promise.resolve(mockProjectState);
     mockGetProjectState.mockReturnValue(projectStatePromise);
-    mockCreateBucket.mockReturnValue(createBucketPromise);
-    expect.assertions(7);
 
     const initializer = shallow(
       <Initializer
@@ -247,25 +186,12 @@ describe('Initializer', () => {
         settings={mockSettings}
       />
     );
-    await projectStatePromise;
-    initializer.find('SubmitButton').simulate('click');
-    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>)).toBe(
-      true
-    );
-    try {
-      await createBucketPromise;
-    } catch (err) {
-      expect(err).toEqual(error);
-    }
-    expect(initializer.contains(<p>Creating Cloud Storage Bucket..</p>)).toBe(
-      false
-    );
-    expect(
-      initializer.contains(<p className="error">Unable to create GCS Bucket</p>)
-    ).toBe(true);
 
-    expect(mockEnableServices).not.toHaveBeenCalled();
-    expect(mockCreateCloudFunction).not.toHaveBeenCalled();
-    expect(mockCreateBucket).toHaveBeenCalledWith('test-project');
+    await projectStatePromise;
+    expect(initializer).toMatchSnapshot();
+    expect(mockSettingsSet).toHaveBeenCalledWith(
+      'schedulerRegion',
+      'us-central1'
+    );
   });
 });
