@@ -1,7 +1,7 @@
 // Ensure styles are loaded by webpack
 import '../style/index.css';
 
-import {JupyterLab, JupyterLabPlugin} from '@jupyterlab/application';
+import {JupyterFrontEnd, JupyterFrontEndPlugin} from '@jupyterlab/application';
 import {ToolbarButton} from '@jupyterlab/apputils';
 import {ISettingRegistry} from '@jupyterlab/coreutils';
 import {DocumentRegistry} from '@jupyterlab/docregistry';
@@ -15,7 +15,7 @@ import {defaultGapiProvider, GcpService} from './service/gcp';
 /**
  * The plugin registration information.
  */
-const buttonPlugin: JupyterLabPlugin<void> = {
+const buttonPlugin: JupyterFrontEndPlugin<void> = {
   activate: activateButton,
   autoStart: true,
   id: 'gcpscheduler:button',
@@ -56,7 +56,7 @@ export class ButtonExtension implements
 }
 
 async function activateButton(
-    app: JupyterLab, settingRegistry: ISettingRegistry) {
+    app: JupyterFrontEnd, settingRegistry: ISettingRegistry) {
   console.log('Activating GCP Scheduled Notebook Extension');
   const gcpService = new GcpService(defaultGapiProvider());
   const schedulerContext = new GcpSchedulerContext();
@@ -65,7 +65,7 @@ async function activateButton(
   const schedulerWidget =
       new GcpSchedulerWidget(gcpService, settings, schedulerContext);
   schedulerWidget.id = 'gcpscheduler';
-  app.shell.addToBottomArea(schedulerWidget);
+  app.shell.add(schedulerWidget, 'bottom');
 
   app.docRegistry.addWidgetExtension(
       'Notebook', new ButtonExtension(schedulerContext));
