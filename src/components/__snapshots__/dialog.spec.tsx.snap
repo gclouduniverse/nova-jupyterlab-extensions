@@ -12,87 +12,11 @@ exports[`SchedulerDialog Renders closed Dialog without Notebook: Dialog Closed 1
     >
       Schedule a notebook run
     </p>
-    <Initializer
-      gcpService={
-        Object {
-          "getProjectState": [MockFunction],
-        }
-      }
-      onDialogClose={[Function]}
-      settings={
-        Object {
-          "changed": Object {
-            "connect": [MockFunction] {
-              "calls": Array [
-                Array [
-                  [Function],
-                ],
-              ],
-              "results": Array [
-                Object {
-                  "type": "return",
-                  "value": undefined,
-                },
-              ],
-            },
-            "disconnect": [MockFunction],
-          },
-          "composite": Object {},
-        }
-      }
-    />
   </main>
 </WithStyles(Dialog)>
 `;
 
 exports[`SchedulerDialog Renders with Initializer: Initializer 1`] = `
-<WithStyles(Dialog)
-  open={true}
->
-  <main
-    className="main_f2ra5xi"
-  >
-    <p
-      className="header_fv8txra"
-    >
-      Schedule a notebook run
-    </p>
-    <Initializer
-      gcpService={
-        Object {
-          "getProjectState": [MockFunction],
-        }
-      }
-      onDialogClose={[Function]}
-      settings={
-        Object {
-          "changed": Object {
-            "connect": [MockFunction] {
-              "calls": Array [
-                Array [
-                  [Function],
-                ],
-              ],
-              "results": Array [
-                Object {
-                  "type": "return",
-                  "value": undefined,
-                },
-              ],
-            },
-            "disconnect": [MockFunction],
-          },
-          "composite": Object {
-            "projectId": "test-project",
-          },
-        }
-      }
-    />
-  </main>
-</WithStyles(Dialog)>
-`;
-
-exports[`SchedulerDialog Renders with SchedulerForm: SchedulerForm 1`] = `
 <WithStyles(Dialog)
   open={true}
 >
@@ -112,10 +36,7 @@ exports[`SchedulerDialog Renders with SchedulerForm: SchedulerForm 1`] = `
       }
       gcpSettings={
         Object {
-          "gcsBucket": "gs://test-project/notebooks",
           "projectId": "test-project",
-          "schedulerRegion": "us-east1",
-          "serviceAccount": "test-project@appspot.gserviceaccount.com",
         }
       }
       notebook={
@@ -296,6 +217,56 @@ E=m
       }
       notebookName="Foo.ipynb"
       onDialogClose={[Function]}
+    />
+  </main>
+</WithStyles(Dialog)>
+`;
+
+exports[`SchedulerDialog Renders with SchedulerForm: SchedulerForm 1`] = `
+<WithStyles(Dialog)
+  open={true}
+>
+  <main
+    className="main_f2ra5xi"
+  >
+    <p
+      className="header_fv8txra"
+    >
+      Schedule a notebook run
+    </p>
+    <Initializer
+      gcpService={
+        Object {
+          "getProjectState": [MockFunction],
+        }
+      }
+      onDialogClose={[Function]}
+      settings={
+        Object {
+          "changed": Object {
+            "connect": [MockFunction] {
+              "calls": Array [
+                Array [
+                  [Function],
+                ],
+              ],
+              "results": Array [
+                Object {
+                  "type": "return",
+                  "value": undefined,
+                },
+              ],
+            },
+            "disconnect": [MockFunction],
+          },
+          "composite": Object {
+            "gcsBucket": "gs://test-project/notebooks",
+            "projectId": "test-project",
+            "schedulerRegion": "us-east1",
+            "serviceAccount": "test-project@appspot.gserviceaccount.com",
+          },
+        }
+      }
     />
   </main>
 </WithStyles(Dialog)>

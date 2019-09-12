@@ -1,9 +1,8 @@
-
 import * as React from 'react';
-import {CircularProgress, withStyles} from '@material-ui/core';
-import {classes} from 'typestyle';
+import { CircularProgress, withStyles } from '@material-ui/core';
+import { classes } from 'typestyle';
 
-import {COLORS, css} from '../../styles';
+import { COLORS, css } from '../../styles';
 
 interface Props {
   actionPending: boolean;
@@ -15,7 +14,7 @@ interface Props {
 const Progress = withStyles({
   root: {
     color: COLORS.link,
-  }
+  },
 })(CircularProgress);
 
 /**
@@ -23,9 +22,13 @@ const Progress = withStyles({
  */
 // tslint:disable-next-line:enforce-name-casing
 export function SubmitButton(props: Props) {
-  return (
-    props.actionPending ? <Progress size='18px' /> :
-      <button className={classes(css.button, css.submitButton)}
-        onClick={props.onClick}>{props.text}</button>
+  const { actionPending, text, ...inputProps } = props;
+
+  return actionPending ? (
+    <Progress size="18px" />
+  ) : (
+    <button className={classes(css.button, css.submitButton)} {...inputProps}>
+      {text}
+    </button>
   );
 }

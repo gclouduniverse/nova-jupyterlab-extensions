@@ -52,6 +52,7 @@ export const css = stylesheet({
     borderColor: COLORS.border,
     fontFamily: ROBOTO_FONT,
     fontWeight: 500,
+    cursor: 'pointer',
     ...csstips.padding('4px', '16px'),
   },
   inputContainer: {
@@ -64,7 +65,12 @@ export const css = stylesheet({
     borderWidth: '1px',
     fontSize: '12px',
     marginTop: '4px',
-    ...csstips.padding('5px', '4px')
+    ...csstips.padding('5px', '4px'),
+    $nest: {
+      '&.error': {
+        borderColor: 'red',
+      }
+    }
   },
   link: {
     color: COLORS.link,
@@ -85,6 +91,18 @@ export const css = stylesheet({
     backgroundColor: '#1a73e8',
     color: COLORS.white,
     marginLeft: '16px',
+    $nest: {
+      '&:disabled': {
+        backgroundColor: '#bfbfbf',
+      },
+      '&:hover': {
+        cursor: 'pointer',
+      },
+      '&:disabled:hover': {cursor: 'default'},
+    }
   },
-  noTopMargin: {marginTop: 0}
+  noTopMargin: {marginTop: 0},
+  errorMessage: {
+    color: 'red',
+  },
 });

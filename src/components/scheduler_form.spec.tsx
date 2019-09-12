@@ -87,6 +87,49 @@ describe('SchedulerForm', () => {
     expect(schedulerForm.find('input[name="schedule"]')).toHaveLength(1);
   });
 
+  it('Should show error message if run name is empty', async () => {
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    schedulerForm.find('SubmitButton button').simulate('click');
+    await immediatePromise();
+    expect(schedulerForm.html()).toContain('Run name is required');
+  });
+
+  it(`Should show error message if run name contains character other than letter
+      , number, and underscore`, async () => {
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    simulateFieldChange(schedulerForm, 'input[name="jobId"]', 'jobId', '!');
+    await immediatePromise();
+    expect(schedulerForm.html()).toContain(
+      'Run name can only contain letters, numbers, or underscores.'
+    );
+
+    simulateFieldChange(schedulerForm, 'input[name="jobId"]', 'jobId', '  ');
+    await immediatePromise();
+    expect(schedulerForm.html()).toContain(
+      'Run name can only contain letters, numbers, or underscores.'
+    );
+  });
+
+  it('Should show error message if frequency is empty', async () => {
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    simulateFieldChange(
+      schedulerForm,
+      'input[name="jobId"]',
+      'jobId',
+      'test_scheduled_job'
+    );
+    simulateFieldChange(
+      schedulerForm,
+      'select[name="scheduleType"]',
+      'scheduleType',
+      RECURRING
+    );
+
+    schedulerForm.find('SubmitButton button').simulate('click');
+    await immediatePromise();
+    expect(schedulerForm.html()).toContain('Frequency is required');
+  });
+
   it('Submits an immediate job to AI Platform', async () => {
     const gcsPath = 'gs://test-project/notebooks/Test Notebook.ipynb';
     const uploadNotebookPromise = Promise.resolve();

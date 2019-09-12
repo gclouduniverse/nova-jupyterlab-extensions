@@ -85,7 +85,7 @@ exports[`Initializer Shows message while retrieving project state: Shows initial
     className="actionBar_fe1jzmp"
   >
     <button
-      className="button_f1o5na2b"
+      className="button_fyf4elf"
       onClick={[MockFunction]}
     >
       Close

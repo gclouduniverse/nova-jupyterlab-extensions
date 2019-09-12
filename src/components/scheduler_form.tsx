@@ -10,6 +10,7 @@ import { SchedulerDescription } from './shared/scheduler_description';
 import { SelectInput } from './shared/select_input';
 import { SubmitButton } from './shared/submit_button';
 import { TextInput } from './shared/text_input';
+import { FieldError } from './shared/field_error';
 import {
   CONTAINER_IMAGES,
   CUSTOM,
@@ -18,7 +19,10 @@ import {
   SCALE_TIERS,
   SCHEDULE_TYPES,
   SINGLE,
+  RECURRING,
 } from '../data';
+
+type Error = { [key: string]: string };
 
 interface Props extends PropsWithGcpService {
   gcpSettings: GcpSettings;
@@ -58,7 +62,9 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
       handleChange,
       isSubmitting,
       status,
+      errors,
     } = this.props;
+
     return (
       <form>
         <SchedulerDescription />
@@ -67,8 +73,10 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
           label="Run name"
           name="jobId"
           value={values.jobId}
+          hasError={!!errors.jobId}
           onChange={handleChange}
         />
+        <FieldError message={errors.jobId} />
         <SelectInput
           label="Region"
           name="region"
@@ -116,8 +124,10 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
               label="Frequency"
               name="schedule"
               value={values.schedule}
+              hasError={!!errors.schedule}
               onChange={handleChange}
             />
+            <FieldError message={errors.schedule} />
             <p className={css.noTopMargin}>
               Schedule is specified using unix-cron format. You can define a
               schedule so that your job runs multiple times a day, or runs on
@@ -155,6 +165,21 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
     handleChange(e);
   }
 }
+
+/** Form Component to submit Scheduled Notebooks */
+export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
+  mapPropsToValues: () => ({
+    jobId: '',
+    imageUri: String(CONTAINER_IMAGES[0].value),
+    region: String(REGIONS[0].value),
+    scaleTier: String(SCALE_TIERS[0].value),
+    masterType: '',
+    scheduleType: SINGLE,
+    schedule: '',
+  }),
+  handleSubmit: submit,
+  validate,
+})(InnerSchedulerForm);
 
 /** Handles the form Submission to AI Platform */
 async function submit(
@@ -212,16 +237,21 @@ async function submit(
   setSubmitting(false);
 }
 
-/** Form Component to submit Scheduled Notebooks */
-export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
-  mapPropsToValues: () => ({
-    jobId: '',
-    imageUri: String(CONTAINER_IMAGES[0].value),
-    region: String(REGIONS[0].value),
-    scaleTier: String(SCALE_TIERS[0].value),
-    masterType: '',
-    scheduleType: SINGLE,
-    schedule: '',
-  }),
-  handleSubmit: submit,
-})(InnerSchedulerForm);
+function validate(values: SchedulerFormValues) {
+  const { jobId, scheduleType, schedule } = values;
+  const error: Error = {};
+
+  if (!jobId) {
+    error.jobId = 'Run name is required';
+  } else if (!jobId.match(/^[a-zA-Z0-9_]*$/g)) {
+    error.jobId = 'Run name can only contain letters, numbers, or underscores.';
+  }
+
+  if (scheduleType === RECURRING) {
+    if (!schedule) {
+      error.schedule = 'Frequency is required';
+    }
+  }
+
+  return error;
+}
