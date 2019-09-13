@@ -39,9 +39,6 @@ export const css = stylesheet({
     ...csstips.horizontal,
     ...csstips.endJustified,
   },
-  activity: {
-    color: COLORS.link,
-  },
   column: csstips.vertical,
   row: csstips.horizontal,
   bold: {
@@ -70,7 +67,7 @@ export const css = stylesheet({
     ...csstips.padding('5px', '4px'),
     $nest: {
       '&.error': {
-        borderColor: 'red',
+        borderColor: COLORS.red,
       },
     },
   },
@@ -89,28 +86,5 @@ export const css = stylesheet({
       },
     },
   },
-  submitButton: {
-    backgroundColor: '#1a73e8',
-    color: COLORS.white,
-    marginLeft: '16px',
-    $nest: {
-      '&:disabled': {
-        backgroundColor: '#bfbfbf',
-      },
-      '&:hover': {
-        cursor: 'pointer',
-      },
-      '&:disabled:hover': { cursor: 'default' },
-    },
-  },
   noTopMargin: { marginTop: 0 },
-  errorMessage: {
-    color: 'red',
-  },
-  submitButtonDisabled: {
-    backgroundColor: 'var(--md-grey-300, #e0e0e0)',
-    color: 'var(--md-grey-500, #9e9e9e)',
-    cursor: 'not-allowed',
-    marginLeft: '16px',
-  },
 });

@@ -51,6 +51,7 @@ const localStyles = stylesheet({
     fontWeight: 500,
     fontSize: '15px',
     marginTop: 0,
+    marginBottom: '12px',
   },
   main: {
     backgroundColor: COLORS.white,

@@ -177,21 +177,6 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
   }
 }
 
-/** Form Component to submit Scheduled Notebooks */
-export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
-  mapPropsToValues: () => ({
-    jobId: '',
-    imageUri: String(CONTAINER_IMAGES[0].value),
-    region: String(REGIONS[0].value),
-    scaleTier: String(SCALE_TIERS[0].value),
-    masterType: '',
-    scheduleType: SINGLE,
-    schedule: '',
-  }),
-  handleSubmit: submit,
-  validate,
-})(InnerSchedulerForm);
-
 /** Handles the form Submission to AI Platform */
 async function submit(
   values: SchedulerFormValues,
@@ -281,3 +266,18 @@ function validate(values: SchedulerFormValues) {
 
   return error;
 }
+
+/** Form Component to submit Scheduled Notebooks */
+export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
+  mapPropsToValues: () => ({
+    jobId: '',
+    imageUri: String(CONTAINER_IMAGES[0].value),
+    region: String(REGIONS[0].value),
+    scaleTier: String(SCALE_TIERS[0].value),
+    masterType: '',
+    scheduleType: SINGLE,
+    schedule: '',
+  }),
+  handleSubmit: submit,
+  validate,
+})(InnerSchedulerForm);

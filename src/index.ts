@@ -11,6 +11,7 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { INotebookModel, NotebookPanel } from '@jupyterlab/notebook';
 import { toArray } from '@phosphor/algorithm';
 import { DisposableDelegate, IDisposable } from '@phosphor/disposable';
+
 import { GcpSchedulerContext, GcpSchedulerWidget } from './components/widget';
 import { defaultGapiProvider, GcpService } from './service/gcp';
 
