@@ -26,14 +26,6 @@ describe('Initializer', () => {
         {
           enabled: false,
           service: {
-            name: 'Compute Engine API',
-            endpoint: 'compute.googleapis.com',
-            documentation: 'https://cloud.google.com/compute/',
-          },
-        },
-        {
-          enabled: false,
-          service: {
             name: 'Cloud Storage API',
             endpoint: 'storage-api.googleapis.com',
             documentation: 'https://cloud.google.com/storage/',

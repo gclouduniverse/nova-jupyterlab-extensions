@@ -139,6 +139,44 @@ export const REGIONS: Option[] = [
   },
 ];
 
+/**
+ * Supported AppEngine locations, which dictate the endpoint for Cloud Scheduler
+ * https://cloud.google.com/appengine/docs/locations
+ * Because we deploy the Cloud Function to the same region, this is actually
+ * an intersection of the above list and the one at
+ * https://cloud.google.com/functions/docs/locations
+ */
+export const APPENGINE_REGIONS: Option[] = [
+  {
+    value: 'us-central1',
+    text: 'us-central1 (Iowa)',
+  },
+  {
+    value: 'us-east1',
+    text: 'us-east1 (South Carolina)',
+  },
+  {
+    value: 'us-east4',
+    text: 'us-east4 (Northern Virginia)',
+  },
+  {
+    value: 'asia-east2',
+    text: 'asia-east2 (Hong Kong)',
+  },
+  {
+    value: 'asia-northeast1',
+    text: 'asia-northeast1 (Tokyo)',
+  },
+  {
+    value: 'europe-west1',
+    text: 'europe-west1 (Belgium)',
+  },
+  {
+    value: 'europe-west2',
+    text: 'europe-west2 (London)',
+  },
+];
+
 /** Single execution or recurring schedule */
 export const SCHEDULE_TYPES: Option[] = [
   { value: SINGLE, text: 'Single run' },

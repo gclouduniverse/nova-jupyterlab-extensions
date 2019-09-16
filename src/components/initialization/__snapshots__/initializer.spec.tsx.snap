@@ -130,14 +130,6 @@ exports[`Initializer Shows loaded Message then ServiceEnabler: Shows ServiceEnab
           Object {
             "enabled": false,
             "service": Object {
-              "documentation": "https://cloud.google.com/compute/",
-              "endpoint": "compute.googleapis.com",
-              "name": "Compute Engine API",
-            },
-          },
-          Object {
-            "enabled": false,
-            "service": Object {
               "documentation": "https://cloud.google.com/storage/",
               "endpoint": "storage-api.googleapis.com",
               "name": "Cloud Storage API",

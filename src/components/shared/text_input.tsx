@@ -17,7 +17,7 @@ interface TextInputProps {
 export function TextInput(props: TextInputProps) {
   const { label, hasError, ...inputProps } = props;
   return (
-    <div className={css.inputContainer}>
+    <div className={classes(css.inputContainer, hasError && 'error')}>
       {label && <label>{label}</label>}
       <input
         className={classes(css.input, hasError && 'error')}
