@@ -5,12 +5,13 @@ import * as React from 'react';
 import { RunNotebookRequest } from '../service/gcp';
 import { css } from '../styles';
 import { GcpSettings, OnDialogClose, PropsWithGcpService } from './dialog';
+import { FieldError } from './shared/field_error';
 import { LearnMoreLink } from './shared/learn_more_link';
+import { Message } from './shared/message';
 import { SchedulerDescription } from './shared/scheduler_description';
 import { SelectInput } from './shared/select_input';
 import { SubmitButton } from './shared/submit_button';
 import { TextInput } from './shared/text_input';
-import { FieldError } from './shared/field_error';
 import {
   CONTAINER_IMAGES,
   CUSTOM,
@@ -23,6 +24,11 @@ import {
 } from '../data';
 
 type Error = { [key: string]: string };
+
+interface Status {
+  asError?: boolean;
+  message: string;
+}
 
 interface Props extends PropsWithGcpService {
   gcpSettings: GcpSettings;
@@ -61,10 +67,9 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
       submitForm,
       handleChange,
       isSubmitting,
-      status,
       errors,
     } = this.props;
-
+    const status: Status = this.props.status;
     return (
       <form>
         <SchedulerDescription />
@@ -136,6 +141,13 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
             </p>
           </div>
         )}
+        {status && (
+          <Message
+            asActivity={isSubmitting}
+            asError={status.asError}
+            text={status.message}
+          />
+        )}
         <div className={css.actionBar}>
           <button
             className={css.button}
@@ -150,7 +162,6 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
             text="Submit"
           />
         </div>
-        {status && <p>{status}</p>}
       </form>
     );
   }
@@ -165,21 +176,6 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
     handleChange(e);
   }
 }
-
-/** Form Component to submit Scheduled Notebooks */
-export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
-  mapPropsToValues: () => ({
-    jobId: '',
-    imageUri: String(CONTAINER_IMAGES[0].value),
-    region: String(REGIONS[0].value),
-    scaleTier: String(SCALE_TIERS[0].value),
-    masterType: '',
-    scheduleType: SINGLE,
-    schedule: '',
-  }),
-  handleSubmit: submit,
-  validate,
-})(InnerSchedulerForm);
 
 /** Handles the form Submission to AI Platform */
 async function submit(
@@ -210,28 +206,43 @@ async function submit(
     region,
   };
 
-  let status = `Uploading ${notebookName} to ${request.inputNotebookGcsPath}`;
+  const status: Status = {
+    asError: false,
+    message: `Uploading ${notebookName} to ${request.inputNotebookGcsPath}`,
+  };
   setStatus(status);
-  await gcpService.uploadNotebook(
-    notebook.toString(),
-    request.inputNotebookGcsPath
-  );
-
-  if (scheduleType !== SINGLE && schedule) {
-    status = 'Submitting Job to Cloud Scheduler';
-    setStatus(status);
-    const job = await gcpService.scheduleNotebook(
-      request,
-      gcpSettings.schedulerRegion,
-      gcpSettings.serviceAccount,
-      schedule
+  try {
+    await gcpService.uploadNotebook(
+      notebook.toString(),
+      request.inputNotebookGcsPath
     );
-    status = `Successfully created ${job.name}`;
-  } else {
-    status = 'Submitting Job to AI Platform';
+  } catch (err) {
+    status.asError = true;
+    status.message = `Unable to upload ${notebookName} to ${request.inputNotebookGcsPath}`;
     setStatus(status);
-    const job = await gcpService.runNotebook(request);
-    status = `Successfully created ${job.jobId}`;
+    setSubmitting(false);
+    return;
+  }
+
+  try {
+    if (scheduleType !== SINGLE && schedule) {
+      status.message = 'Submitting Job to Cloud Scheduler';
+      setStatus(status);
+      const job = await gcpService.scheduleNotebook(
+        request,
+        gcpSettings.schedulerRegion,
+        schedule
+      );
+      status.message = `Successfully created ${job.name}`;
+    } else {
+      status.message = 'Submitting Job to AI Platform';
+      setStatus(status);
+      const job = await gcpService.runNotebook(request);
+      status.message = `Successfully created ${job.jobId}`;
+    }
+  } catch (err) {
+    status.asError = true;
+    status.message = 'Unable to submit job';
   }
   setStatus(status);
   setSubmitting(false);
@@ -255,3 +266,18 @@ function validate(values: SchedulerFormValues) {
 
   return error;
 }
+
+/** Form Component to submit Scheduled Notebooks */
+export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
+  mapPropsToValues: () => ({
+    jobId: '',
+    imageUri: String(CONTAINER_IMAGES[0].value),
+    region: String(REGIONS[0].value),
+    scaleTier: String(SCALE_TIERS[0].value),
+    masterType: '',
+    scheduleType: SINGLE,
+    schedule: '',
+  }),
+  handleSubmit: submit,
+  validate,
+})(InnerSchedulerForm);

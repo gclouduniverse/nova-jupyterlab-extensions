@@ -51,7 +51,7 @@ describe('GcpService', () => {
   });
 
   describe('API Services', () => {
-    it('Gets project state with ready status', async () => {
+    it('Gets project state with all items available', async () => {
       gapiRequestMock.mockImplementation((args: { path: string }) => {
         if (args.path.indexOf('servicemanagement') >= 0) {
           return {
@@ -67,19 +67,25 @@ describe('GcpService', () => {
         } else if (args.path.indexOf('cloudfunctions') >= 0) {
           return {
             result: {
-              functions: [
-                {
-                  name: 'submitScheduledNotebook',
-                  status: 'ACTIVE',
-                  httpsTrigger: {
-                    url: 'https://mycloudfunctiourl.goog',
-                  },
-                },
-              ],
+              name: 'submitScheduledNotebook',
+              status: 'ACTIVE',
+              httpsTrigger: {
+                url: 'https://mycloudfunctiourl.goog',
+              },
             },
           };
         } else if (args.path.indexOf('storage') >= 0) {
-          return { result: { items: ['bucket1'] } };
+          return {
+            result: {
+              items: [{ name: 'bucket1' }],
+            },
+          };
+        } else if (args.path.indexOf('cloudscheduler') >= 0) {
+          return {
+            result: {
+              locations: [{ locationId: 'us-central1' }],
+            },
+          };
         }
       });
       const projectState = await gcpService.getProjectState();
@@ -90,9 +96,9 @@ describe('GcpService', () => {
       expect(projectState).toEqual({
         allServicesEnabled: true,
         hasCloudFunction: true,
-        hasGcsBucket: true,
+        gcsBuckets: ['gs://bucket1'],
         projectId: 'test-project',
-        ready: true,
+        schedulerRegion: 'us-central1',
         serviceStatuses: [
           {
             service: {
@@ -143,12 +149,25 @@ describe('GcpService', () => {
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         path:
-          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions',
+          'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations',
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        path:
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
       });
     });
 
-    it('Gets project state with disabled APIs', async () => {
-      gapiRequestMock.mockResolvedValue({ result: { services: [] } });
+    it('Gets project state with disabled APIs and no resources', async () => {
+      gapiRequestMock.mockImplementation((args: { path: string }) => {
+        if (args.path.indexOf('servicemanagement') >= 0) {
+          return { result: { services: [] } };
+        } else if (args.path.indexOf('storage') >= 0) {
+          throw new Error('404 Not Found');
+        } else if (args.path.indexOf('cloudscheduler') >= 0) {
+          throw new Error('403 Not Authorized');
+        }
+      });
+
       const projectState = await gcpService.getProjectState();
 
       expect(gapi.client.setToken).toBeCalledWith({
@@ -157,9 +176,9 @@ describe('GcpService', () => {
       expect(projectState).toEqual({
         allServicesEnabled: false,
         hasCloudFunction: false,
-        hasGcsBucket: false,
+        gcsBuckets: [],
         projectId: 'test-project',
-        ready: false,
+        schedulerRegion: '',
         serviceStatuses: [
           {
             service: {
@@ -210,38 +229,40 @@ describe('GcpService', () => {
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         path:
-          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions',
+          'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations',
+      });
+      expect(gapi.client.request).not.toHaveBeenCalledWith({
+        path:
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/us-central1/functions/submitScheduledNotebook',
       });
     });
 
-    it('Gets project state with Storage disabled and pending Cloud Function', async () => {
+    it('Gets project state with no Cloud Function', async () => {
       gapiRequestMock.mockImplementation((args: { path: string }) => {
         if (args.path.indexOf('servicemanagement') >= 0) {
           return {
             result: {
               services: [
+                { serviceName: 'storage-api.googleapis.com' },
                 { serviceName: 'cloudscheduler.googleapis.com' },
                 { serviceName: 'ml.googleapis.com' },
-                { serviceName: 'cloudfunctions.googleapis.com' },
               ],
             },
           };
         } else if (args.path.indexOf('cloudfunctions') >= 0) {
+          throw new Error('404 Not Found');
+        } else if (args.path.indexOf('storage') >= 0) {
           return {
             result: {
-              functions: [
-                {
-                  name: 'submitScheduledNotebook',
-                  status: 'CREATING',
-                  httpsTrigger: {
-                    url: 'https://mycloudfunctiourl.goog',
-                  },
-                },
-              ],
+              items: [{ name: 'bucket1' }],
             },
           };
-        } else if (args.path.indexOf('storage') >= 0) {
-          return Promise.reject({ error: 'Storage is not available' });
+        } else if (args.path.indexOf('cloudscheduler') >= 0) {
+          return {
+            result: {
+              locations: [{ locationId: 'us-east1' }],
+            },
+          };
         }
       });
       const projectState = await gcpService.getProjectState();
@@ -252,9 +273,9 @@ describe('GcpService', () => {
       expect(projectState).toEqual({
         allServicesEnabled: false,
         hasCloudFunction: false,
-        hasGcsBucket: false,
+        gcsBuckets: ['gs://bucket1'],
         projectId: 'test-project',
-        ready: false,
+        schedulerRegion: 'us-east1',
         serviceStatuses: [
           {
             service: {
@@ -262,7 +283,7 @@ describe('GcpService', () => {
               endpoint: 'storage-api.googleapis.com',
               documentation: 'https://cloud.google.com/storage/',
             },
-            enabled: false,
+            enabled: true,
           },
           {
             service: {
@@ -286,7 +307,7 @@ describe('GcpService', () => {
               endpoint: 'cloudfunctions.googleapis.com',
               documentation: 'https://cloud.google.com/functions/',
             },
-            enabled: true,
+            enabled: false,
           },
         ],
       });
@@ -305,7 +326,11 @@ describe('GcpService', () => {
       });
       expect(gapi.client.request).toHaveBeenCalledWith({
         path:
-          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/-/functions',
+          'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations',
+      });
+      expect(gapi.client.request).toHaveBeenCalledWith({
+        path:
+          'https://cloudfunctions.googleapis.com/v1/projects/test-project/locations/us-east1/functions/submitScheduledNotebook',
       });
     });
 
@@ -404,6 +429,104 @@ describe('GcpService', () => {
       });
       expect(gapi.client.request).toBeCalledWith({
         path: 'https://servicemanagement.googleapis.com/v1/operation2',
+      });
+    });
+  });
+
+  describe('AppEngine', () => {
+    it('Creates an App', async () => {
+      const createdApp = {
+        id: 'test-project',
+        name: 'test-project',
+        locationId: 'us-central',
+      };
+      gapiRequestMock
+        .mockResolvedValueOnce({ result: { name: 'createappoperation' } })
+        .mockResolvedValueOnce({
+          result: { done: true, response: createdApp },
+        });
+
+      const stopTimers = pollerHelper();
+      const appEngineApp = await gcpService.createAppEngineApp('us-central');
+      stopTimers();
+      expect(appEngineApp).toEqual(createdApp);
+
+      expect(gapi.client.request).toBeCalledWith({
+        path: 'https://appengine.googleapis.com/v1/apps',
+        method: 'POST',
+        body: { id: 'test-project', locationId: 'us-central' },
+      });
+      expect(gapi.client.request).toHaveBeenNthCalledWith(2, {
+        path: 'https://appengine.googleapis.com/v1/createappoperation',
+      });
+    });
+
+    it('Fails to create an App', async () => {
+      // Mock a chain of requests so the operation poller has to poll twice
+      gapiRequestMock
+        .mockResolvedValueOnce({ result: { name: 'createappoperation' } })
+        .mockResolvedValueOnce({
+          result: { done: true, error: 'Could not create AppEngine App' },
+        });
+
+      const stopTimers = pollerHelper();
+      expect.assertions(3);
+      try {
+        await gcpService.createAppEngineApp('us-west1');
+      } catch (err) {
+        expect(err).toEqual({
+          done: true,
+          error: 'Could not create AppEngine App',
+        });
+      }
+      stopTimers();
+
+      expect(gapi.client.request).toBeCalledWith({
+        path: 'https://appengine.googleapis.com/v1/apps',
+        method: 'POST',
+        body: { id: 'test-project', locationId: 'us-west1' },
+      });
+      expect(gapi.client.request).toHaveBeenNthCalledWith(2, {
+        path: 'https://appengine.googleapis.com/v1/createappoperation',
+      });
+    });
+
+    it('Lists available AppEngine locations', async () => {
+      const expectedLocations = [
+        {
+          name: 'apps/test-project/locations/us-west2',
+          location: 'us-west2',
+        },
+        {
+          name: 'apps/test-project/locations/europe-west2',
+          location: 'europe-west2',
+        },
+        {
+          name: 'apps/test-project/locations/us-central',
+          location: 'us-central',
+        },
+      ];
+      gapiRequestMock.mockResolvedValue({
+        result: { locations: expectedLocations },
+      });
+
+      const locations = await gcpService.getAppEngineLocations();
+      expect(locations).toEqual(expectedLocations);
+    });
+
+    it('Throws an error if locations cannot be retrieved', async () => {
+      const error = { error: 'Could not retrieve locations' };
+      gapiRequestMock.mockRejectedValue(error);
+
+      expect.assertions(2);
+      try {
+        await gcpService.getAppEngineLocations();
+      } catch (err) {
+        expect(err).toEqual(error);
+      }
+
+      expect(gapi.client.request).toBeCalledWith({
+        path: 'https://appengine.googleapis.com/v1/apps/test-project/locations',
       });
     });
   });
@@ -657,7 +780,6 @@ describe('GcpService', () => {
       const job = await gcpService.scheduleNotebook(
         runNotebookRequest,
         'us-central1',
-        serviceAccountEmail,
         schedule
       );
 
@@ -696,7 +818,6 @@ describe('GcpService', () => {
         await gcpService.scheduleNotebook(
           runNotebookRequest,
           'us-east1',
-          serviceAccountEmail,
           schedule
         );
       } catch (err) {
@@ -721,6 +842,31 @@ describe('GcpService', () => {
         path:
           'https://cloudscheduler.googleapis.com/v1/projects/test-project/locations/us-east1/jobs',
       });
+    });
+  });
+
+  describe('Container Image', () => {
+    it('Gets image URI from JupyterLab server', async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        text: () => Promise.resolve('tf-cpu.1-14.m34'),
+      });
+      (global as any).fetch = mockFetch;
+
+      const imageUri = await gcpService.getImageUri();
+      expect(imageUri).toBe(
+        'gcr.io/deeplearning-platform-release/tf-cpu.1-14:m34'
+      );
+      expect(mockFetch).toHaveBeenCalledWith('/gcp/v1/runtime');
+    });
+
+    it('Returns an empty string if image URI retrieval fails', async () => {
+      const error = { error: 'Unable to retrieve environment' };
+      const mockFetch = jest.fn().mockRejectedValue(error);
+      (global as any).fetch = mockFetch;
+
+      const imageUri = await gcpService.getImageUri();
+      expect(imageUri).toBe('');
+      expect(mockFetch).toHaveBeenCalledWith('/gcp/v1/runtime');
     });
   });
 });

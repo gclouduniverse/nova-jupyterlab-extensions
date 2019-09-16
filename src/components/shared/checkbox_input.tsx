@@ -10,7 +10,7 @@ interface CheckboxInputProps {
 /** Funtional Component for Checkbox input fields */
 // tslint:disable-next-line:enforce-name-casing
 export function CheckboxInput(props: CheckboxInputProps) {
-  const {label, ...inputProps} = props;
+  const { label, ...inputProps } = props;
   return (
     <div>
       <input type="checkbox" {...inputProps} />
