@@ -785,7 +785,7 @@ describe('GcpService', () => {
 
       expect(gapi.client.request).toHaveBeenCalledWith({
         body: {
-          description: 'Scheduled Notebook',
+          description: 'jupyterlab_scheduled_notebook',
           httpTarget: {
             body: btoa(JSON.stringify(aiPlatformJobBody)),
             headers: { 'Content-Type': 'application/json' },
@@ -826,7 +826,7 @@ describe('GcpService', () => {
 
       expect(gapi.client.request).toHaveBeenCalledWith({
         body: {
-          description: 'Scheduled Notebook',
+          description: 'jupyterlab_scheduled_notebook',
           httpTarget: {
             body: btoa(JSON.stringify(aiPlatformJobBody)),
             headers: { 'Content-Type': 'application/json' },

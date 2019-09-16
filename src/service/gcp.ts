@@ -5,6 +5,7 @@ const CLOUD_FUNCTION_NAME = 'submitScheduledNotebook';
 const GAPI_URL = 'https://apis.google.com/js/api.js';
 const POLL_INTERVAL = 5000;
 const SERVICE_ACCOUNT_DOMAIN = 'appspot.gserviceaccount.com';
+const SCHEDULED_JOB_INDICATOR = 'jupyterlab_scheduled_notebook';
 
 interface Service {
   endpoint: string;
@@ -344,7 +345,7 @@ export class GcpService {
       const locationPrefix = `projects/${auth.project}/locations/${regionName}/jobs`;
       const requestBody: CloudSchedulerJob = {
         name: `${locationPrefix}/${request.jobId}`,
-        description: 'Scheduled Notebook',
+        description: SCHEDULED_JOB_INDICATOR,
         schedule,
         timeZone,
         httpTarget: {
@@ -572,7 +573,7 @@ export class GcpService {
   ): gapi.client.ml.GoogleCloudMlV1__Job {
     return {
       jobId: request.jobId,
-      labels: { job_type: 'jupyterlab_scheduled_notebook' },
+      labels: { job_type: SCHEDULED_JOB_INDICATOR },
       trainingInput: {
         args: [
           'nbexecutor',
