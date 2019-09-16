@@ -9,6 +9,7 @@ interface FieldErrorProps {
 
 const error = style({
   color: COLORS.red,
+  paddingBottom: '10px',
 });
 
 /** Funtional Component for select fields */

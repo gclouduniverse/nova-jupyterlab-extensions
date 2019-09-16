@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Option } from '../../data';
+import { Option, APPENGINE_REGIONS } from '../../data';
 import { css } from '../../styles';
 import { OnDialogClose, PropsWithGcpService } from '../dialog';
 import { LearnMoreLink } from '../shared/learn_more_link';
@@ -30,21 +30,10 @@ export class AppEngineCreator extends React.Component<Props, State> {
     super(props);
     this.state = {
       creatingApp: false,
-      regionOptions: [],
+      regionOptions: APPENGINE_REGIONS,
     };
 
     this._onCreate = this._onCreate.bind(this);
-  }
-
-  async componentDidMount() {
-    const locations = await this.props.gcpService.getAppEngineLocations();
-    const regionOptions: Option[] = locations
-      .map(l => ({
-        text: l.locationId,
-        value: l.locationId,
-      }))
-      .sort((a, b) => (a.value < b.value ? -1 : 1));
-    this.setState({ regionOptions });
   }
 
   render() {
@@ -66,7 +55,11 @@ export class AppEngineCreator extends React.Component<Props, State> {
           />
         </div>
         {message && (
-          <Message asActivity={!hasError} asError={hasError} text={message} />
+          <Message
+            asActivity={!hasError && creatingApp}
+            asError={hasError}
+            text={message}
+          />
         )}
         {
           // TODO: Refactor action bar to its own shared component
@@ -94,13 +87,17 @@ export class AppEngineCreator extends React.Component<Props, State> {
     });
     try {
       await this.props.gcpService.createAppEngineApp(region);
+      this.setState({
+        creatingApp: false,
+        message: `Successfully created App Engine app in ${region}`,
+      });
+      this.props.onStateChange();
     } catch (err) {
       this.setState({
+        creatingApp: false,
         message: `Unable to create App Engine app in ${region}`,
         hasError: true,
       });
     }
-    this.setState({ creatingApp: false });
-    this.props.onStateChange();
   }
 }

@@ -57,6 +57,11 @@ export const css = stylesheet({
   inputContainer: {
     paddingBottom: '10px',
     ...csstips.vertical,
+    $nest: {
+      '&.error': {
+        paddingBottom: '2px',
+      },
+    },
   },
   input: {
     backgroundColor: COLORS.input,
@@ -68,6 +73,7 @@ export const css = stylesheet({
     $nest: {
       '&.error': {
         borderColor: COLORS.red,
+        borderStyle: 'solid',
       },
     },
   },

@@ -96,7 +96,11 @@ export class ServiceEnabler extends React.Component<Props, State> {
           })}
         </div>
         {message && (
-          <Message asActivity={!hasError} asError={hasError} text={message} />
+          <Message
+            asActivity={!hasError && enablingApis}
+            asError={hasError}
+            text={message}
+          />
         )}
         {
           <div className={css.actionBar}>
@@ -131,14 +135,15 @@ export class ServiceEnabler extends React.Component<Props, State> {
       });
       try {
         await this.props.gcpService.enableServices(toEnable);
+        this.setState({ enablingApis: false, message: 'All services enabled' });
+        this.props.onStateChange();
       } catch (err) {
         this.setState({
-          message: 'Unable to enable necessary GCP APIs',
+          enablingApis: false,
           hasError: true,
+          message: 'Unable to enable necessary GCP APIs',
         });
       }
-      this.setState({ enablingApis: false });
-      this.props.onStateChange();
     }
   }
 }
