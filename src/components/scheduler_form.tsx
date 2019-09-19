@@ -61,6 +61,34 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
     this._onScaleTierChanged = this._onScaleTierChanged.bind(this);
   }
 
+  componentDidMount() {
+    this.prepopulateImageUri();
+  }
+
+  private prepopulateImageUri() {
+    this.props.gcpService.getImageUri().then((imageUri: string) => {
+      if (imageUri) {
+        this.props.setFieldValue(
+          'imageUri',
+          this.getDefaultImageUri(imageUri),
+          false
+        );
+      }
+    });
+  }
+
+  private getDefaultImageUri(imageUri: string) {
+    const latestImage = imageUri.slice(0, imageUri.indexOf(':')) + ':latest';
+
+    for (const image of CONTAINER_IMAGES) {
+      if (image.value === latestImage) {
+        return latestImage;
+      }
+    }
+
+    return String(CONTAINER_IMAGES[0].value);
+  }
+
   render() {
     const {
       values,
@@ -248,6 +276,18 @@ async function submit(
   setSubmitting(false);
 }
 
+function mapPropsToValues() {
+  return {
+    jobId: '',
+    imageUri: String(CONTAINER_IMAGES[0].value),
+    region: String(REGIONS[0].value),
+    scaleTier: String(SCALE_TIERS[0].value),
+    masterType: '',
+    scheduleType: SINGLE,
+    schedule: '',
+  };
+}
+
 function validate(values: SchedulerFormValues) {
   const { jobId, scheduleType, schedule } = values;
   const error: Error = {};
@@ -269,15 +309,8 @@ function validate(values: SchedulerFormValues) {
 
 /** Form Component to submit Scheduled Notebooks */
 export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
-  mapPropsToValues: () => ({
-    jobId: '',
-    imageUri: String(CONTAINER_IMAGES[0].value),
-    region: String(REGIONS[0].value),
-    scaleTier: String(SCALE_TIERS[0].value),
-    masterType: '',
-    scheduleType: SINGLE,
-    schedule: '',
-  }),
+  mapPropsToValues,
   handleSubmit: submit,
   validate,
+  enableReinitialize: true,
 })(InnerSchedulerForm);

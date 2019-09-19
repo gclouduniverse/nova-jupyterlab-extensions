@@ -55,11 +55,13 @@ describe('SchedulerForm', () => {
   const mockScheduleNotebook = jest.fn();
   const mockNotebookContents = jest.fn();
   const mockDialogClose = jest.fn();
+  const mockGetImageUri = jest.fn();
   const mockGcpService = ({
     uploadNotebook: mockUploadNotebook,
     runNotebook: mockRunNotebook,
     scheduleNotebook: mockScheduleNotebook,
-  } as undefined) as GcpService;
+    getImageUri: mockGetImageUri,
+  } as unknown) as GcpService;
   const mockNotebook = ({
     toString: mockNotebookContents,
   } as unknown) as INotebookModel;
@@ -79,6 +81,7 @@ describe('SchedulerForm', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockGetImageUri.mockResolvedValue('');
   });
 
   it('Toggles Machine type visibility based on Scale tier', async () => {
@@ -114,6 +117,20 @@ describe('SchedulerForm', () => {
     schedulerForm.find('SubmitButton button').simulate('click');
     await immediatePromise();
     expect(schedulerForm.html()).toContain('Run name is required');
+  });
+
+  it('Should prepopulate imageUri if it match options in form', async () => {
+    mockGetImageUri.mockResolvedValue(
+      'gcr.io/deeplearning-platform-release/tf-gpu.1-14:m35'
+    );
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+
+    await immediatePromise();
+    schedulerForm.update();
+
+    expect(schedulerForm.find('select[name="imageUri"]').props().value).toBe(
+      'gcr.io/deeplearning-platform-release/tf-gpu.1-14:latest'
+    );
   });
 
   it(`Should show error message if run name contains character other than letter
