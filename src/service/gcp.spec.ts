@@ -795,7 +795,7 @@ describe('GcpService', () => {
           },
           name: `projects/test-project/locations/us-central1/jobs/${runNotebookRequest.jobId}`,
           schedule,
-          timeZone: 'America/New_York',
+          timeZone: expect.any(String),
         },
         method: 'POST',
         path:
@@ -836,7 +836,7 @@ describe('GcpService', () => {
           },
           name: `projects/test-project/locations/us-east1/jobs/${runNotebookRequest.jobId}`,
           schedule,
-          timeZone: 'America/New_York',
+          timeZone: expect.any(String),
         },
         method: 'POST',
         path:

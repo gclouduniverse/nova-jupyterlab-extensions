@@ -312,5 +312,4 @@ export const SchedulerForm = withFormik<Props, SchedulerFormValues>({
   mapPropsToValues,
   handleSubmit: submit,
   validate,
-  enableReinitialize: true,
 })(InnerSchedulerForm);

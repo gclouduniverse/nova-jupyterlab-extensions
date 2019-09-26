@@ -43,6 +43,7 @@ export function SubmitButton(props: Props) {
         css.button,
         props.actionPending ? localStyles.disabled : localStyles.submit
       )}
+      type="button"
       disabled={props.actionPending}
       onClick={props.onClick}
     >
