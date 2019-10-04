@@ -121,7 +121,7 @@ describe('SchedulerForm', () => {
 
   it('Should prepopulate imageUri if it match options in form', async () => {
     mockGetImageUri.mockResolvedValue(
-      'gcr.io/deeplearning-platform-release/tf-gpu.1-14:m35'
+      'gcr.io/deeplearning-platform-release/tf-gpu.1-14'
     );
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
 

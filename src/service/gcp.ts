@@ -402,12 +402,7 @@ export class GcpService {
     if (!runtimeEnv) return '';
 
     const lastDotIndex = runtimeEnv.lastIndexOf('.');
-    return (
-      imageUriPrefix +
-      runtimeEnv.substr(0, lastDotIndex) +
-      ':' +
-      runtimeEnv.substr(lastDotIndex + 1)
-    );
+    return `${imageUriPrefix}${runtimeEnv.substr(0, lastDotIndex)}`;
   }
 
   /** Retrieves the list of regions where AppEngine can be deployed. */

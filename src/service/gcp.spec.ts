@@ -853,9 +853,7 @@ describe('GcpService', () => {
       (global as any).fetch = mockFetch;
 
       const imageUri = await gcpService.getImageUri();
-      expect(imageUri).toBe(
-        'gcr.io/deeplearning-platform-release/tf-cpu.1-14:m34'
-      );
+      expect(imageUri).toBe('gcr.io/deeplearning-platform-release/tf-cpu.1-14');
       expect(mockFetch).toHaveBeenCalledWith('/gcp/v1/runtime');
     });
 

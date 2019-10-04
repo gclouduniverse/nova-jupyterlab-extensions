@@ -36,11 +36,20 @@ export const CONTAINER_IMAGES: Option[] = [
     text: 'TensorFlow 1.14 (CPU only)',
   },
   { value: `${GCR_PREFIX}/tf-gpu.1-14:latest`, text: 'TensorFlow 1.14 (GPU)' },
-  { value: `${GCR_PREFIX}/tf2-cpu:latest`, text: 'TensorFlow 2.0 (CPU only)' },
-  { value: `${GCR_PREFIX}/tf2-gpu:latest`, text: 'TensorFlow 2.0 (GPU)' },
-  { value: `${GCR_PREFIX}/pytorch-cpu:latest`, text: 'PyTorch (CPU only)' },
-  { value: `${GCR_PREFIX}/pytorch-gpu:latest`, text: 'PyTorch (GPU)' },
-  { value: `${GCR_PREFIX}/r-cpu:latest`, text: 'R (with r-essentials)' },
+  {
+    value: `${GCR_PREFIX}/tf2-cpu.2-0:latest`,
+    text: 'TensorFlow 2.0 (CPU only)',
+  },
+  { value: `${GCR_PREFIX}/tf2-gpu.2-0:latest`, text: 'TensorFlow 2.0 (GPU)' },
+  {
+    value: `${GCR_PREFIX}/pytorch-cpu.1-2:latest`,
+    text: 'PyTorch 1.2 (CPU only)',
+  },
+  { value: `${GCR_PREFIX}/pytorch-gpu.1-2:latest`, text: 'PyTorch 1.2 (GPU)' },
+  {
+    value: `${GCR_PREFIX}/r-cpu.3-6:latest`,
+    text: 'R 3.6 (with r-essentials)',
+  },
 ];
 
 /**
