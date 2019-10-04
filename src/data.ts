@@ -41,7 +41,6 @@ export const CONTAINER_IMAGES: Option[] = [
   { value: `${GCR_PREFIX}/pytorch-cpu:latest`, text: 'PyTorch (CPU only)' },
   { value: `${GCR_PREFIX}/pytorch-gpu:latest`, text: 'PyTorch (GPU)' },
   { value: `${GCR_PREFIX}/r-cpu:latest`, text: 'R (with r-essentials)' },
-  { value: `${GCR_PREFIX}/r-cpu:latest`, text: 'R (with r-essentials)' },
 ];
 
 /**
