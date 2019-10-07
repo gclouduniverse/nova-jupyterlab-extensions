@@ -6,9 +6,10 @@ import * as React from 'react';
 import { stylesheet } from 'typestyle';
 
 import { GcpService } from '../service/gcp';
-import { BASE_FONT, COLORS } from '../styles';
+import { BASE_FONT, COLORS, css } from '../styles';
 import { Initializer } from './initialization/initializer';
 import { SchedulerForm } from './scheduler_form';
+import { Message } from './shared/message';
 
 /** Information provided to the GcpSchedulerWidget */
 export interface LaunchSchedulerRequest {
@@ -63,6 +64,10 @@ const localStyles = stylesheet({
   },
 });
 
+const PYTHON2 = 'python2';
+const PYTHON2_WARNING =
+  'Python 2 Notebooks are not supported. Please upgrade your Notebook to use Python 3';
+
 /**
  * Dialog wrapping the GCP scheduler UI.
  */
@@ -104,26 +109,48 @@ export class SchedulerDialog extends React.Component<Props, State> {
     const { canSchedule, dialogClosedByUser, gcpSettings } = this.state;
     const { gcpService, request } = this.props;
     const hasNotebook = !!(request && request.notebook);
+    let content: JSX.Element;
+    // For now, only exclude Python 2 kernels
+    if (
+      hasNotebook &&
+      request.notebook.defaultKernelName.toLowerCase().replace(' ', '') ==
+        PYTHON2
+    ) {
+      content = (
+        <div className={css.column}>
+          <Message asError={true} text={PYTHON2_WARNING} />
+          <div className={css.actionBar}>
+            <button className={css.button} onClick={this._onDialogClose}>
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    } else if (!canSchedule) {
+      content = (
+        <Initializer
+          gcpService={gcpService}
+          onDialogClose={this._onDialogClose}
+          settings={this.props.settings}
+        />
+      );
+    } else {
+      content = (
+        <SchedulerForm
+          gcpService={gcpService}
+          gcpSettings={gcpSettings}
+          notebookName={request.notebookName}
+          notebook={request.notebook}
+          onDialogClose={this._onDialogClose}
+        />
+      );
+    }
+
     return (
       <Dialog open={hasNotebook && !dialogClosedByUser}>
         <main className={localStyles.main}>
           <p className={localStyles.header}>Schedule a notebook run</p>
-          {!canSchedule && (
-            <Initializer
-              gcpService={gcpService}
-              onDialogClose={this._onDialogClose}
-              settings={this.props.settings}
-            />
-          )}
-          {canSchedule && hasNotebook && (
-            <SchedulerForm
-              gcpService={gcpService}
-              gcpSettings={gcpSettings}
-              notebookName={request.notebookName}
-              notebook={request.notebook}
-              onDialogClose={this._onDialogClose}
-            />
-          )}
+          {content}
         </main>
       </Dialog>
     );

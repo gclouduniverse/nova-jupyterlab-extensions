@@ -6,6 +6,7 @@ import * as React from 'react';
 
 import { GcpService } from '../service/gcp';
 import { LaunchSchedulerRequest, SchedulerDialog } from './dialog';
+import { INotebookModel } from '@jupyterlab/notebook';
 
 describe('SchedulerDialog', () => {
   const mockGetProject = jest.fn();
@@ -46,6 +47,35 @@ describe('SchedulerDialog', () => {
     );
     expect(settings.changed.connect).toHaveBeenCalled();
     expect(dialog).toMatchSnapshot('Dialog Closed');
+  });
+
+  it('Renders with Python2 warning', async () => {
+    const settings = ({
+      changed: {
+        connect: mockSettingsChangedConnect,
+        disconnect: mockSettingsChangedDisconnect,
+      },
+      composite: {
+        projectId: 'test-project',
+        gcsBucket: 'gs://test-project/notebooks',
+        schedulerRegion: 'us-east1',
+        serviceAccount: 'test-project@appspot.gserviceaccount.com',
+      },
+    } as unknown) as ISettingRegistry.ISettings;
+    launchSchedulerRequest.notebookName = 'p2-nb.ipynb';
+    launchSchedulerRequest.notebook = {
+      defaultKernelName: 'Python 2',
+    } as INotebookModel;
+
+    const dialog = shallow(
+      <SchedulerDialog
+        gcpService={mockGcpService}
+        request={launchSchedulerRequest}
+        settings={settings}
+      />
+    );
+    expect(settings.changed.connect).toHaveBeenCalled();
+    expect(dialog).toMatchSnapshot('Python2Warning');
   });
 
   it('Renders with SchedulerForm', async () => {
