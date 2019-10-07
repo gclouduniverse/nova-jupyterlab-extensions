@@ -103,7 +103,7 @@ describe('ServiceEnabler', () => {
       expect(enabler.find('Message').props()).toMatchObject({
         asActivity: false,
         asError: true,
-        text: 'Unable to enable necessary GCP APIs',
+        text: 'error-occurred: Unable to enable necessary GCP APIs',
       });
       expect(mockOnStateChange).not.toHaveBeenCalled();
     }

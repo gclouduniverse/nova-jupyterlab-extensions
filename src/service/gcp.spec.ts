@@ -589,7 +589,15 @@ describe('GcpService', () => {
     });
 
     it('Throws an error when uploading a Notebook', async () => {
-      const error = { error: 'Could not upload Notebook' };
+      const error = {
+        result: {
+          error: {
+            code: 429,
+            status: 'RESOURCE_EXHAUSTED',
+            message: 'Could not upload Notebook',
+          },
+        },
+      };
       gapiRequestMock.mockRejectedValue(error);
 
       const fakeContents = 'fake Notebook content';
@@ -600,7 +608,7 @@ describe('GcpService', () => {
           'gs://fake-bucket/notebook.json'
         );
       } catch (err) {
-        expect(err).toEqual(error);
+        expect(err).toEqual('RESOURCE_EXHAUSTED: Could not upload Notebook');
       }
 
       expect(gapi.client.request).toBeCalledWith({

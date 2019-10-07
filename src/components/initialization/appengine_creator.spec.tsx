@@ -70,7 +70,7 @@ describe('AppEngineCreator', () => {
       expect(creator.find('Message').props()).toMatchObject({
         asActivity: false,
         asError: true,
-        text: 'Unable to create App Engine app in us-east1',
+        text: 'error-occurred: Unable to create App Engine app in us-east1',
       });
       expect(mockOnStateChange).not.toHaveBeenCalled();
     }

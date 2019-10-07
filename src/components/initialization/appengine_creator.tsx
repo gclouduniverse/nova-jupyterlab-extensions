@@ -95,7 +95,7 @@ export class AppEngineCreator extends React.Component<Props, State> {
     } catch (err) {
       this.setState({
         creatingApp: false,
-        message: `Unable to create App Engine app in ${region}`,
+        message: `${err}: Unable to create App Engine app in ${region}`,
         hasError: true,
       });
     }

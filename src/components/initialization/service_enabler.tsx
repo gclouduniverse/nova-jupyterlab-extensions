@@ -141,7 +141,7 @@ export class ServiceEnabler extends React.Component<Props, State> {
         this.setState({
           enablingApis: false,
           hasError: true,
-          message: 'Unable to enable necessary GCP APIs',
+          message: `${err}: Unable to enable necessary GCP APIs`,
         });
       }
     }

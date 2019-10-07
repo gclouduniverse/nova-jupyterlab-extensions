@@ -347,7 +347,7 @@ describe('SchedulerForm', () => {
 
   it('Fails to upload Notebook to GCS', async () => {
     mockNotebookContents.mockReturnValue(notebookContents);
-    mockUploadNotebook.mockRejectedValue('Unable to upload');
+    mockUploadNotebook.mockRejectedValue('UNAVAILABLE: GCS is unavailable');
 
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
 
@@ -362,15 +362,12 @@ describe('SchedulerForm', () => {
     schedulerForm.find('SubmitButton button').simulate('click');
     await immediatePromise();
     schedulerForm.update();
+    const errorText =
+      'UNAVAILABLE: GCS is unavailable: Unable to upload Test ' +
+      'Notebook.ipynb to gs://test-project/notebooks/Test Notebook.ipynb';
     expect(
       schedulerForm.contains(
-        <Message
-          asActivity={false}
-          asError={true}
-          text={
-            'Unable to upload Test Notebook.ipynb to gs://test-project/notebooks/Test Notebook.ipynb'
-          }
-        />
+        <Message asActivity={false} asError={true} text={errorText} />
       )
     ).toBe(true);
 
@@ -384,7 +381,9 @@ describe('SchedulerForm', () => {
   it('Fails to submit job', async () => {
     mockNotebookContents.mockReturnValue(notebookContents);
     mockUploadNotebook.mockResolvedValue(true);
-    mockRunNotebook.mockRejectedValue('Unable to run Notebook');
+    mockRunNotebook.mockRejectedValue(
+      'PERMISSION_DENIED: User does not have necessary permissions'
+    );
 
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
 
@@ -399,13 +398,11 @@ describe('SchedulerForm', () => {
     schedulerForm.find('SubmitButton button').simulate('click');
     await immediatePromise();
     schedulerForm.update();
+    const errorText =
+      'PERMISSION_DENIED: User does not have necessary permissions: Unable to submit job';
     expect(
       schedulerForm.contains(
-        <Message
-          asActivity={false}
-          asError={true}
-          text={'Unable to submit job'}
-        />
+        <Message asActivity={false} asError={true} text={errorText} />
       )
     ).toBe(true);
 

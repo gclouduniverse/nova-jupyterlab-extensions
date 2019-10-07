@@ -86,7 +86,7 @@ export class CloudFunctionDeployer extends React.Component<Props, State> {
     } catch (err) {
       this.setState({
         deploying: false,
-        message: `Unable to create Cloud Function in ${region}`,
+        message: `${err}: Unable to create Cloud Function in ${region}`,
         hasError: true,
       });
     }

@@ -90,7 +90,8 @@ describe('GcsBucketSelector', () => {
     expect(selector.find('Message').props()).toMatchObject({
       asActivity: false,
       asError: true,
-      text: 'Unable to create Cloud Storage bucket gs://new-bucket',
+      text:
+        'error-occurred: Unable to create Cloud Storage bucket gs://new-bucket',
     });
     expect(mockCreateBucket).toHaveBeenCalledWith('new-bucket');
     expect(mockOnSelected).not.toHaveBeenCalled();

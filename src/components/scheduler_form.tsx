@@ -237,7 +237,7 @@ async function submit(
     );
   } catch (err) {
     status.asError = true;
-    status.message = `Unable to upload ${notebookName} to ${request.inputNotebookGcsPath}`;
+    status.message = `${err}: Unable to upload ${notebookName} to ${request.inputNotebookGcsPath}`;
     setStatus(status);
     setSubmitting(false);
     return;
@@ -261,7 +261,7 @@ async function submit(
     }
   } catch (err) {
     status.asError = true;
-    status.message = 'Unable to submit job';
+    status.message = `${err}: Unable to submit job`;
   }
   setStatus(status);
   setSubmitting(false);

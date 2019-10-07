@@ -211,7 +211,7 @@ export class GcpService {
       );
     } catch (err) {
       console.error('Unable to enable necessary GCP services');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -233,7 +233,7 @@ export class GcpService {
       return finishedOperation.response as AppEngineApp;
     } catch (err) {
       console.error(`Unable to create App Engine app in ${regionName}`);
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -253,7 +253,7 @@ export class GcpService {
       return response.result;
     } catch (err) {
       console.error(`Unable to create GCS bucket ${bucketName}`);
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -285,7 +285,7 @@ export class GcpService {
       return response.result;
     } catch (err) {
       console.error(`Unable to upload Notebook contents to ${gcsPath}`);
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -315,7 +315,7 @@ export class GcpService {
       return finishedOperation.response as Function;
     } catch (err) {
       console.error('Unable to Create Cloud Function');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -366,7 +366,7 @@ export class GcpService {
       return response.result;
     } catch (err) {
       console.error('Unable to create Cloud Scheduler job');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -391,7 +391,7 @@ export class GcpService {
       return response.result;
     } catch (err) {
       console.error('Unable to submit Notebook to AI Platform');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -418,7 +418,7 @@ export class GcpService {
       return response.result.locations || [];
     } catch (err) {
       console.error('Unable to retrieve AppEngine locations');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -444,7 +444,7 @@ export class GcpService {
       }));
     } catch (err) {
       console.error('Unable to return GCP services');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -479,7 +479,7 @@ export class GcpService {
       return '';
     } catch (err) {
       console.error('Could not determine Cloud Scheduler location');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -495,7 +495,7 @@ export class GcpService {
       return (response.result.items || []).map(b => `gs://${b.name}`);
     } catch (err) {
       console.error('Unable to list GCS Buckets');
-      throw err;
+      this._handleApiError(err);
     }
   }
 
@@ -583,5 +583,14 @@ export class GcpService {
         scaleTier: request.scaleTier,
       },
     } as gapi.client.ml.GoogleCloudMlV1__Job;
+  }
+
+  private _handleApiError(err: any) {
+    // Check for Google API Error structure
+    // https://cloud.google.com/apis/design/errors#error_codes
+    if (err.result && err.result.error) {
+      throw `${err.result.error.status}: ${err.result.error.message}`;
+    }
+    throw err;
   }
 }

@@ -119,7 +119,7 @@ export class GcsBucketSelector extends React.Component<Props, State> {
         } catch (err) {
           this.setState({
             actionPending: false,
-            message: `Unable to create Cloud Storage bucket ${newBucket}`,
+            message: `${err}: Unable to create Cloud Storage bucket ${newBucket}`,
             hasError: true,
           });
           return;

@@ -64,7 +64,7 @@ describe('CloudFunctionDeployer', () => {
       expect(deployer.find('Message').props()).toMatchObject({
         asActivity: false,
         asError: true,
-        text: 'Unable to create Cloud Function in us-central1',
+        text: 'error-occurred: Unable to create Cloud Function in us-central1',
       });
       expect(mockOnCreated).not.toHaveBeenCalled();
     }
