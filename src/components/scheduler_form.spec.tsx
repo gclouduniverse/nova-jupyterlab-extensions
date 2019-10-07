@@ -81,6 +81,7 @@ describe('SchedulerForm', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockProps.notebookName = notebookName;
     mockGetImageUri.mockResolvedValue('');
   });
 
@@ -115,7 +116,14 @@ describe('SchedulerForm', () => {
   it('Should populate Run name with Notebook name and timestamp', async () => {
     const fakeTimestamp = 1570406400000;
     jest.spyOn(Date, 'now').mockReturnValue(fakeTimestamp);
-    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+
+    let schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    expect(schedulerForm.find('TextInput[name="jobId"]').prop('value')).toBe(
+      `test_notebook__${fakeTimestamp}`
+    );
+
+    mockProps.notebookName = `path/to/folder/with/${mockProps.notebookName}`;
+    schedulerForm = mount(<SchedulerForm {...mockProps} />);
     expect(schedulerForm.find('TextInput[name="jobId"]').prop('value')).toBe(
       `test_notebook__${fakeTimestamp}`
     );

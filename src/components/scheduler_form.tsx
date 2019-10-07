@@ -268,8 +268,12 @@ async function submit(
 }
 
 function mapPropsToValues(props: Props) {
+  const sliceStart =
+    props.notebookName.lastIndexOf('/') === -1
+      ? 0
+      : props.notebookName.lastIndexOf('/') + 1;
   const jobId = props.notebookName
-    .slice(0, props.notebookName.lastIndexOf('.'))
+    .slice(sliceStart, props.notebookName.lastIndexOf('.'))
     .toLowerCase()
     .replace(/\W/, '_');
   return {
