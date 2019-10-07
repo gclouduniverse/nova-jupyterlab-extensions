@@ -544,7 +544,10 @@ describe('GcpService', () => {
         path: '/storage/v1/b',
         method: 'POST',
         params: { project: 'test-project' },
-        body: { name: bucketName },
+        body: {
+          name: bucketName,
+          versioning: { enabled: true },
+        },
       });
     });
 
@@ -563,7 +566,10 @@ describe('GcpService', () => {
         path: '/storage/v1/b',
         method: 'POST',
         params: { project: 'test-project' },
-        body: { name: bucketName },
+        body: {
+          name: bucketName,
+          versioning: { enabled: true },
+        },
       });
     });
 

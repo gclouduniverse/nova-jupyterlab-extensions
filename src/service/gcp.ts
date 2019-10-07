@@ -248,7 +248,10 @@ export class GcpService {
         path: `/storage/v1/b`,
         method: 'POST',
         params: { project: auth.project },
-        body: { name: bucketName },
+        body: {
+          name: bucketName,
+          versioning: { enabled: true },
+        },
       });
       return response.result;
     } catch (err) {
@@ -589,7 +592,8 @@ export class GcpService {
     // Check for Google API Error structure
     // https://cloud.google.com/apis/design/errors#error_codes
     if (err.result && err.result.error) {
-      throw `${err.result.error.status}: ${err.result.error.message}`;
+      const status = err.result.error.status || err.result.error.code;
+      throw `${status}: ${err.result.error.message}`;
     }
     throw err;
   }
