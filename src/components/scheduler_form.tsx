@@ -267,9 +267,13 @@ async function submit(
   setSubmitting(false);
 }
 
-function mapPropsToValues() {
+function mapPropsToValues(props: Props) {
+  const jobId = props.notebookName
+    .slice(0, props.notebookName.lastIndexOf('.'))
+    .toLowerCase()
+    .replace(/\W/, '_');
   return {
-    jobId: '',
+    jobId: `${jobId}__${Date.now()}`,
     imageUri: String(CONTAINER_IMAGES[0].value),
     region: String(REGIONS[0].value),
     scaleTier: String(SCALE_TIERS[0].value),

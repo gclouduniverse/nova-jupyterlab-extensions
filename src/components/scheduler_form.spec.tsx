@@ -112,8 +112,18 @@ describe('SchedulerForm', () => {
     expect(schedulerForm.find('input[name="schedule"]')).toHaveLength(1);
   });
 
+  it('Should populate Run name with Notebook name and timestamp', async () => {
+    const fakeTimestamp = 1570406400000;
+    jest.spyOn(Date, 'now').mockReturnValue(fakeTimestamp);
+    const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    expect(schedulerForm.find('TextInput[name="jobId"]').prop('value')).toBe(
+      `test_notebook__${fakeTimestamp}`
+    );
+  });
+
   it('Should show error message if run name is empty', async () => {
     const schedulerForm = mount(<SchedulerForm {...mockProps} />);
+    simulateFieldChange(schedulerForm, 'input[name="jobId"]', 'jobId', '');
     schedulerForm.find('SubmitButton button').simulate('click');
     await immediatePromise();
     expect(schedulerForm.html()).toContain('Run name is required');
