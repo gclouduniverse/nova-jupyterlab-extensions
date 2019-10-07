@@ -17,7 +17,7 @@ interface State {
   creatingApp: boolean;
   hasError?: boolean;
   message?: string;
-  region?: string;
+  region: string;
   regionOptions: Option[];
 }
 
@@ -30,6 +30,7 @@ export class AppEngineCreator extends React.Component<Props, State> {
     super(props);
     this.state = {
       creatingApp: false,
+      region: String(APPENGINE_REGIONS[0].value),
       regionOptions: APPENGINE_REGIONS,
     };
 

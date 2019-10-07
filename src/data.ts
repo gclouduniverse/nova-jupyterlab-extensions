@@ -156,7 +156,7 @@ export const REGIONS: Option[] = [
  */
 export const APPENGINE_REGIONS: Option[] = [
   {
-    value: 'us-central1',
+    value: 'us-central',
     text: 'us-central1 (Iowa)',
   },
   {
