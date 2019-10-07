@@ -10,6 +10,7 @@ import { BASE_FONT, COLORS, css } from '../styles';
 import { Initializer } from './initialization/initializer';
 import { SchedulerForm } from './scheduler_form';
 import { Message } from './shared/message';
+import { ActionBar } from './shared/action_bar';
 
 /** Information provided to the GcpSchedulerWidget */
 export interface LaunchSchedulerRequest {
@@ -23,8 +24,19 @@ export interface PropsWithGcpService {
   gcpService: GcpService;
 }
 
+export interface JobSubmittedMessage {
+  message: string;
+  link: string;
+}
+
 /** Definition for a function that closes the SchedulerDialog. */
 export type OnDialogClose = () => void;
+
+/**
+ * Definition for function that shows a message and link after a job is
+ * submitted.
+ */
+export type OnJobSubmit = (message: JobSubmittedMessage) => void;
 
 /** Extension settings. */
 export interface GcpSettings {
@@ -41,9 +53,10 @@ interface Props extends PropsWithGcpService {
 }
 
 interface State {
+  canSchedule: boolean;
   dialogClosedByUser: boolean;
   gcpSettings?: GcpSettings;
-  canSchedule: boolean;
+  jobSubmittedMessage?: JobSubmittedMessage;
 }
 
 const localStyles = stylesheet({
@@ -64,6 +77,7 @@ const localStyles = stylesheet({
   },
 });
 
+const JOB_SUBMITTED_MESSAGE_TIMEOUT = 5000;
 const PYTHON2 = 'python2';
 const PYTHON2_WARNING =
   'Python 2 Notebooks are not supported. Please upgrade your Notebook to use Python 3';
@@ -81,6 +95,7 @@ export class SchedulerDialog extends React.Component<Props, State> {
     };
     this._settingsChanged = this._settingsChanged.bind(this);
     this._onDialogClose = this._onDialogClose.bind(this);
+    this._onJobSubmit = this._onJobSubmit.bind(this);
   }
 
   /** Establishes the binding for Settings Signal and invokes the handler. */
@@ -106,54 +121,70 @@ export class SchedulerDialog extends React.Component<Props, State> {
   }
 
   render() {
-    const { canSchedule, dialogClosedByUser, gcpSettings } = this.state;
+    const { dialogClosedByUser } = this.state;
+    const hasNotebook = !!(this.props.request && this.props.request.notebook);
+    return (
+      <Dialog open={hasNotebook && !dialogClosedByUser}>
+        <main className={localStyles.main}>
+          <p className={localStyles.header}>Schedule a notebook run</p>
+          {this._getDialogContent()}
+        </main>
+      </Dialog>
+    );
+  }
+
+  private _getDialogContent(): JSX.Element {
+    const { canSchedule, gcpSettings, jobSubmittedMessage } = this.state;
     const { gcpService, request } = this.props;
     const hasNotebook = !!(request && request.notebook);
-    let content: JSX.Element;
-    // For now, only exclude Python 2 kernels
-    if (
+    if (jobSubmittedMessage) {
+      return (
+        <div className={css.column}>
+          <Message text={jobSubmittedMessage.message} />
+          <ActionBar onDialogClose={this._onDialogClose}>
+            <a
+              href={jobSubmittedMessage.link}
+              target="_blank"
+              className={css.button}
+            >
+              View Job
+            </a>
+          </ActionBar>
+        </div>
+      );
+    } else if (
       hasNotebook &&
       request.notebook.defaultKernelName.toLowerCase().replace(' ', '') ==
         PYTHON2
     ) {
-      content = (
+      // For now, only exclude Python 2 kernels
+      return (
         <div className={css.column}>
           <Message asError={true} text={PYTHON2_WARNING} />
-          <div className={css.actionBar}>
-            <button className={css.button} onClick={this._onDialogClose}>
-              Close
-            </button>
-          </div>
+          <ActionBar onDialogClose={this._onDialogClose} />
         </div>
       );
     } else if (!canSchedule) {
-      content = (
+      return (
         <Initializer
           gcpService={gcpService}
           onDialogClose={this._onDialogClose}
           settings={this.props.settings}
         />
       );
-    } else {
-      content = (
+    } else if (canSchedule && hasNotebook) {
+      return (
         <SchedulerForm
           gcpService={gcpService}
           gcpSettings={gcpSettings}
           notebookName={request.notebookName}
           notebook={request.notebook}
           onDialogClose={this._onDialogClose}
+          onJobSubmit={this._onJobSubmit}
         />
       );
     }
-
-    return (
-      <Dialog open={hasNotebook && !dialogClosedByUser}>
-        <main className={localStyles.main}>
-          <p className={localStyles.header}>Schedule a notebook run</p>
-          {content}
-        </main>
-      </Dialog>
-    );
+    return null;
   }
 
   // Casts to GcpSettings shape from JSONObject
@@ -170,5 +201,15 @@ export class SchedulerDialog extends React.Component<Props, State> {
 
   private _onDialogClose() {
     this.setState({ dialogClosedByUser: true });
+  }
+
+  private _onJobSubmit(jobSubmittedMessage: JobSubmittedMessage) {
+    this.setState({ jobSubmittedMessage });
+    setTimeout(() => {
+      this.setState({
+        dialogClosedByUser: true,
+        jobSubmittedMessage: undefined,
+      });
+    }, JOB_SUBMITTED_MESSAGE_TIMEOUT);
   }
 }

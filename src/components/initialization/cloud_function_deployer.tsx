@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { css } from '../../styles';
 import { OnDialogClose, PropsWithGcpService } from '../dialog';
+import { ActionBar } from '../shared/action_bar';
 import { LearnMoreLink } from '../shared/learn_more_link';
 import { Message } from '../shared/message';
 import { SubmitButton } from '../shared/submit_button';
@@ -54,16 +55,16 @@ export class CloudFunctionDeployer extends React.Component<Props, State> {
           />
         )}
         {
-          <div className={css.actionBar}>
-            <button className={css.button} onClick={this.props.onDialogClose}>
-              Cancel
-            </button>
+          <ActionBar
+            onDialogClose={this.props.onDialogClose}
+            closeLabel="Cancel"
+          >
             <SubmitButton
               actionPending={deploying}
               onClick={this._onDeploy}
               text="Deploy"
             />
-          </div>
+          </ActionBar>
         }
       </div>
     );

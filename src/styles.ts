@@ -33,12 +33,6 @@ export const BASE_FONT: CSSProperties = {
 
 /** Global styles that are useful across components */
 export const css = stylesheet({
-  actionBar: {
-    paddingTop: '16px',
-    paddingRight: '2px',
-    ...csstips.horizontal,
-    ...csstips.endJustified,
-  },
   column: csstips.vertical,
   row: csstips.horizontal,
   bold: {

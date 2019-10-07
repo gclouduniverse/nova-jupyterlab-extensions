@@ -111,16 +111,9 @@ exports[`SchedulerDialog Renders with Python2 warning: Python2Warning 1`] = `
         asError={true}
         text="Python 2 Notebooks are not supported. Please upgrade your Notebook to use Python 3"
       />
-      <div
-        className="actionBar_fi7ucbc"
-      >
-        <button
-          className="button_fyf4elf"
-          onClick={[Function]}
-        >
-          Close
-        </button>
-      </div>
+      <ActionBar
+        onDialogClose={[Function]}
+      />
     </div>
   </main>
 </WithStyles(Dialog)>
@@ -330,7 +323,42 @@ E=m
       }
       notebookName="Foo.ipynb"
       onDialogClose={[Function]}
+      onJobSubmit={[Function]}
     />
+  </main>
+</WithStyles(Dialog)>
+`;
+
+exports[`SchedulerDialog Shows JobSubmittedMessage and hides after timeout: JobSubmittedMessage 1`] = `
+<WithStyles(Dialog)
+  open={true}
+>
+  <main
+    className="main_f2ra5xi"
+  >
+    <p
+      className="header_fu6fuvk"
+    >
+      Schedule a notebook run
+    </p>
+    <div
+      className="column_fghohlb"
+    >
+      <Message
+        text="Job was Submitted"
+      />
+      <ActionBar
+        onDialogClose={[Function]}
+      >
+        <a
+          className="button_fyf4elf"
+          href="http://test.com/joblink"
+          target="_blank"
+        >
+          View Job
+        </a>
+      </ActionBar>
+    </div>
   </main>
 </WithStyles(Dialog)>
 `;

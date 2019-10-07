@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 import * as React from 'react';
 
 import { GcpService } from '../service/gcp';
-import { LaunchSchedulerRequest, SchedulerDialog } from './dialog';
+import { LaunchSchedulerRequest, SchedulerDialog, OnJobSubmit } from './dialog';
 import { INotebookModel } from '@jupyterlab/notebook';
 
 describe('SchedulerDialog', () => {
@@ -25,6 +25,7 @@ describe('SchedulerDialog', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.useFakeTimers();
     launchSchedulerRequest.notebookName = null;
     launchSchedulerRequest.notebook = null;
   });
@@ -162,5 +163,42 @@ describe('SchedulerDialog', () => {
     };
     dialog.setProps({ request: newRequest });
     expect(dialog.find(Dialog).prop('open')).toBe(true);
+  });
+
+  it('Shows JobSubmittedMessage and hides after timeout', async () => {
+    const settings = ({
+      changed: {
+        connect: mockSettingsChangedConnect,
+        disconnect: mockSettingsChangedDisconnect,
+      },
+      composite: {
+        projectId: 'test-project',
+        gcsBucket: 'gs://test-project/notebooks',
+        schedulerRegion: 'us-east1',
+        serviceAccount: 'test-project@appspot.gserviceaccount.com',
+      },
+    } as unknown) as ISettingRegistry.ISettings;
+    launchSchedulerRequest.notebookName = 'Foo.ipynb';
+    launchSchedulerRequest.notebook = fakeNotebook.model;
+
+    const dialog = shallow(
+      <SchedulerDialog
+        gcpService={mockGcpService}
+        request={launchSchedulerRequest}
+        settings={settings}
+      />
+    );
+    const onJobSubmit: OnJobSubmit = dialog
+      .find('[onJobSubmit]')
+      .prop('onJobSubmit');
+
+    onJobSubmit({
+      message: 'Job was Submitted',
+      link: 'http://test.com/joblink',
+    });
+
+    expect(dialog).toMatchSnapshot('JobSubmittedMessage');
+    jest.runAllTimers();
+    expect(dialog.find(Dialog).prop('open')).toBe(false);
   });
 });

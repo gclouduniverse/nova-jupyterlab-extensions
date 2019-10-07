@@ -1,15 +1,16 @@
-import * as React from 'react';
-import * as csstips from 'csstips';
-import { Check, Close } from '@material-ui/icons';
 import { withStyles } from '@material-ui/core';
+import { Check, Close } from '@material-ui/icons';
+import * as csstips from 'csstips';
+import * as React from 'react';
 import { stylesheet } from 'typestyle';
 
-import { PropsWithGcpService, OnDialogClose } from '../dialog';
 import { ProjectState } from '../../service/gcp';
-import { css, COLORS } from '../../styles';
+import { COLORS, css } from '../../styles';
+import { OnDialogClose, PropsWithGcpService } from '../dialog';
+import { ActionBar } from '../shared/action_bar';
 import { LearnMoreLink } from '../shared/learn_more_link';
-import { SubmitButton } from '../shared/submit_button';
 import { Message } from '../shared/message';
+import { SubmitButton } from '../shared/submit_button';
 
 interface Props extends PropsWithGcpService {
   onDialogClose: OnDialogClose;
@@ -103,16 +104,16 @@ export class ServiceEnabler extends React.Component<Props, State> {
           />
         )}
         {
-          <div className={css.actionBar}>
-            <button className={css.button} onClick={this.props.onDialogClose}>
-              Cancel
-            </button>
+          <ActionBar
+            onDialogClose={this.props.onDialogClose}
+            closeLabel="Cancel"
+          >
             <SubmitButton
               actionPending={enablingApis}
               onClick={this._onEnable}
               text="Enable"
             />
-          </div>
+          </ActionBar>
         }
       </div>
     );

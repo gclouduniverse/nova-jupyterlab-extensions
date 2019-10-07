@@ -1,12 +1,13 @@
 import * as React from 'react';
 
-import { Option, APPENGINE_REGIONS } from '../../data';
+import { APPENGINE_REGIONS, Option } from '../../data';
 import { css } from '../../styles';
 import { OnDialogClose, PropsWithGcpService } from '../dialog';
+import { ActionBar } from '../shared/action_bar';
 import { LearnMoreLink } from '../shared/learn_more_link';
 import { Message } from '../shared/message';
-import { SubmitButton } from '../shared/submit_button';
 import { SelectInput } from '../shared/select_input';
+import { SubmitButton } from '../shared/submit_button';
 
 interface Props extends PropsWithGcpService {
   onDialogClose: OnDialogClose;
@@ -64,16 +65,16 @@ export class AppEngineCreator extends React.Component<Props, State> {
         )}
         {
           // TODO: Refactor action bar to its own shared component
-          <div className={css.actionBar}>
-            <button className={css.button} onClick={this.props.onDialogClose}>
-              Cancel
-            </button>
+          <ActionBar
+            onDialogClose={this.props.onDialogClose}
+            closeLabel="Cancel"
+          >
             <SubmitButton
               actionPending={creatingApp}
               onClick={this._onCreate}
               text="Create"
             />
-          </div>
+          </ActionBar>
         }
       </div>
     );

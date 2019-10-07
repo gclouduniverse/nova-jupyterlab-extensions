@@ -55,6 +55,7 @@ describe('SchedulerForm', () => {
   const mockScheduleNotebook = jest.fn();
   const mockNotebookContents = jest.fn();
   const mockDialogClose = jest.fn();
+  const mockJobSubmit = jest.fn();
   const mockGetImageUri = jest.fn();
   const mockGcpService = ({
     uploadNotebook: mockUploadNotebook,
@@ -77,6 +78,7 @@ describe('SchedulerForm', () => {
     notebook: mockNotebook,
     notebookName,
     onDialogClose: mockDialogClose,
+    onJobSubmit: mockJobSubmit,
   };
 
   beforeEach(() => {
@@ -236,15 +238,6 @@ describe('SchedulerForm', () => {
     runNotebookPromise.resolve();
     await runNotebookPromise.promise;
     schedulerForm.update();
-    expect(
-      schedulerForm.contains(
-        <Message
-          asError={false}
-          asActivity={false}
-          text={'Successfully created aiplatform_job_1'}
-        />
-      )
-    ).toBe(true);
 
     expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
       notebookContents,
@@ -260,6 +253,11 @@ describe('SchedulerForm', () => {
       region: 'us-central1',
     };
     expect(mockGcpService.runNotebook).toHaveBeenCalledWith(aiPlatformRequest);
+    expect(mockJobSubmit).toHaveBeenCalledWith({
+      message: 'Successfully created aiplatform_job_1',
+      link:
+        'https://console.cloud.google.com/ai-platform/jobs/aiplatform_job_1',
+    });
   });
 
   it('Submits a scheduled job to Cloud Scheduler', async () => {
@@ -334,15 +332,7 @@ describe('SchedulerForm', () => {
     scheduleNotebookPromise.resolve();
     await scheduleNotebookPromise.promise;
     schedulerForm.update();
-    expect(
-      schedulerForm.contains(
-        <Message
-          asError={false}
-          asActivity={false}
-          text={'Successfully created cloudscheduler_job_1'}
-        />
-      )
-    ).toBe(true);
+
     expect(mockGcpService.uploadNotebook).toHaveBeenCalledWith(
       notebookContents,
       gcsPath
@@ -361,6 +351,12 @@ describe('SchedulerForm', () => {
       'us-east1',
       '0 0 * * *'
     );
+
+    expect(mockJobSubmit).toHaveBeenCalledWith({
+      message: 'Successfully created cloudscheduler_job_1',
+      link:
+        'https://console.cloud.google.com/cloudscheduler/jobs/edit/us-east1/test_scheduled_job',
+    });
   });
 
   it('Fails to upload Notebook to GCS', async () => {

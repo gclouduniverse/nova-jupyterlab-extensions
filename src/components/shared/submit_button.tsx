@@ -13,7 +13,6 @@ const localStyles = stylesheet({
   submit: {
     backgroundColor: '#1a73e8',
     color: COLORS.white,
-    marginLeft: '16px',
     $nest: {
       '&:disabled': {
         backgroundColor: '#bfbfbf',

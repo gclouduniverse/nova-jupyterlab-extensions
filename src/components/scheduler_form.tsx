@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import { RunNotebookRequest } from '../service/gcp';
 import { css } from '../styles';
-import { GcpSettings, OnDialogClose, PropsWithGcpService } from './dialog';
+import { ActionBar } from './shared/action_bar';
 import { FieldError } from './shared/field_error';
 import { LearnMoreLink } from './shared/learn_more_link';
 import { Message } from './shared/message';
@@ -12,6 +12,12 @@ import { SchedulerDescription } from './shared/scheduler_description';
 import { SelectInput } from './shared/select_input';
 import { SubmitButton } from './shared/submit_button';
 import { TextInput } from './shared/text_input';
+import {
+  GcpSettings,
+  OnDialogClose,
+  PropsWithGcpService,
+  OnJobSubmit,
+} from './dialog';
 import {
   CONTAINER_IMAGES,
   CUSTOM,
@@ -35,6 +41,7 @@ interface Props extends PropsWithGcpService {
   notebookName: string;
   notebook: INotebookModel;
   onDialogClose: OnDialogClose;
+  onJobSubmit: OnJobSubmit;
 }
 
 interface SchedulerFormValues {
@@ -53,6 +60,9 @@ const SCHEDULE_LINK =
   'https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules';
 const SCALE_TIER_LINK =
   'https://cloud.google.com/ml-engine/docs/machine-types#scale_tiers';
+const PANTHEON = 'https://console.cloud.google.com';
+const AI_PLATFORM_LINK = `${PANTHEON}/ai-platform/jobs`;
+const SCHEDULER_LINK = `${PANTHEON}/cloudscheduler/jobs/edit`;
 
 class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
   constructor(props: SchedulerFormProps) {
@@ -167,20 +177,13 @@ class InnerSchedulerForm extends React.Component<SchedulerFormProps, {}> {
             text={status.message}
           />
         )}
-        <div className={css.actionBar}>
-          <button
-            className={css.button}
-            onClick={this.props.onDialogClose}
-            type="button"
-          >
-            Cancel
-          </button>
+        <ActionBar onDialogClose={this.props.onDialogClose} closeLabel="Cancel">
           <SubmitButton
             actionPending={isSubmitting}
             onClick={submitForm}
             text="Submit"
           />
-        </div>
+        </ActionBar>
       </form>
     );
   }
@@ -210,7 +213,13 @@ async function submit(
     schedule,
     region,
   } = values;
-  const { gcpService, gcpSettings, notebook, notebookName } = formikBag.props;
+  const {
+    gcpService,
+    gcpSettings,
+    notebook,
+    notebookName,
+    onJobSubmit,
+  } = formikBag.props;
   const { setStatus, setSubmitting } = formikBag;
 
   const inputNotebookGcsPath = `${gcpSettings.gcsBucket}/${notebookName}`;
@@ -252,12 +261,18 @@ async function submit(
         gcpSettings.schedulerRegion,
         schedule
       );
-      status.message = `Successfully created ${job.name}`;
+      onJobSubmit({
+        message: `Successfully created ${job.name}`,
+        link: `${SCHEDULER_LINK}/${gcpSettings.schedulerRegion}/${request.jobId}`,
+      });
     } else {
       status.message = 'Submitting Job to AI Platform';
       setStatus(status);
       const job = await gcpService.runNotebook(request);
-      status.message = `Successfully created ${job.jobId}`;
+      onJobSubmit({
+        message: `Successfully created ${job.jobId}`,
+        link: `${AI_PLATFORM_LINK}/${job.jobId}`,
+      });
     }
   } catch (err) {
     status.asError = true;

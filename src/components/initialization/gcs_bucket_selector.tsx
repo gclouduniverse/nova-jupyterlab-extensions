@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Option } from '../../data';
 import { css } from '../../styles';
 import { OnDialogClose, PropsWithGcpService } from '../dialog';
+import { ActionBar } from '../shared/action_bar';
 import { LearnMoreLink } from '../shared/learn_more_link';
 import { Message } from '../shared/message';
 import { SelectInput } from '../shared/select_input';
@@ -87,16 +88,16 @@ export class GcsBucketSelector extends React.Component<Props, State> {
           />
         )}
         {
-          <div className={css.actionBar}>
-            <button className={css.button} onClick={this.props.onDialogClose}>
-              Cancel
-            </button>
+          <ActionBar
+            onDialogClose={this.props.onDialogClose}
+            closeLabel="Cancel"
+          >
             <SubmitButton
               actionPending={actionPending}
               onClick={this._onSubmit}
               text={createNewBucket ? 'Create' : 'Select'}
             />
-          </div>
+          </ActionBar>
         }
       </div>
     );
